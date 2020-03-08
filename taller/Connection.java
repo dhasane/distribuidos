@@ -3,12 +3,15 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.TimeUnit;
 
 public class Connection extends Thread{
 
     private DataInputStream in;
     private DataOutputStream out;
     private Socket clientSocket;
+
+    private int tiempo_reintento = 5;
 
     public Connection (Socket aClientSocket) {
        try {
@@ -27,6 +30,7 @@ public class Connection extends Thread{
         try {
             while (true)
             {
+                // esto seria chevere ponerlo para envio de objetos genericos
                 String data = in.readUTF(); //Datos desde cliente
                 System.out.println( clientSocket.getPort() + " envio: " + data);
             }
@@ -35,6 +39,7 @@ public class Connection extends Thread{
             e.printStackTrace();
         } catch(IOException e){
             System.out.println("readline:"+e.getMessage());
+            e.printStackTrace();
         } finally{
             try {
                 clientSocket.close();
@@ -47,11 +52,22 @@ public class Connection extends Thread{
     // enviar info
     public void send( String data )
     {
-        try{
-            out.writeUTF(data);
-        } catch(IOException e){
-            System.out.println("readline:"+e.getMessage());
-        }
+        boolean sent = false;
+        do{
+            try{
+                out.writeUTF(data);
+                sent = true;
+            } catch(IOException e){
+                System.out.println("readline:"+e.getMessage());
+                e.printStackTrace();
+                try{
+                    // esperar y reenviar
+                    TimeUnit.SECONDS.sleep(this.tiempo_reintento);
+                }
+                catch(InterruptedException ie ){
+                    ie.printStackTrace();
+                }
+            }
+        }while(!sent);
     }
-
 }

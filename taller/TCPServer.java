@@ -12,42 +12,45 @@ public class TCPServer {
 
     public static void main(String[] args) {
 
-            int serverPort = 7896;   // Puerto a usar
-            clientes = new ArrayList<Connection>();
+        int serverPort = 7896;   // Puerto a usar
+        clientes = new ArrayList<Connection>();
 
+        try{
+            listenSocket = new ServerSocket(serverPort); //Inicializar socket con el puerto
+        }catch(IOException io){
+            io.printStackTrace();
+        }
+
+        escucharClientesEntrantes();
+
+        // al minuto imprime los clientes que se han agregado a la lista
+        try{
+            TimeUnit.MINUTES.sleep(1);
+        }
+        catch(InterruptedException ie ){
+            ie.printStackTrace();
+        }
+
+        clientes.forEach( x -> System.out.println(x) );
+    }
+
+    private static void escucharClientesEntrantes()
+    {
+        // hilo que espera a que lleguen nuevos clientes
+        new Thread( () -> {
             try{
-                listenSocket = new ServerSocket(serverPort); //Inicializar socket con el puerto
-            }catch(IOException io){
-                io.printStackTrace();
-            }
+                while(true) {
+                    //Esperar en modo escucha al cliente
+                    //Establecer conexion con el socket del cliente(Hostname, Puerto)
 
-            // hilo que espera a que lleguen nuevos clientes
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try{
-                        while(true) {
-                           //Esperar en modo escucha al cliente
-                           //Establecer conexion con el socket del cliente(Hostname, Puerto)
-                           clientes.add( new Connection(listenSocket.accept()) );
-                        }
-                    } catch(IOException e) {
-                        System.out.println("Listen socket:"+e.getMessage());
-                    }
+                    // a las operaciones que se hagan sobre 'clientes' probablemente se les deberia poner algun bloqueo,
+                    // para que se pueda tener mayor seguridad al haber paralelismo
+                    clientes.add( new Connection(listenSocket.accept()) );
                 }
-            }).start();
-
-            // al minuto imprime los clientes que se han agregado a la lista
-            try{
-                TimeUnit.MINUTES.sleep(1);
+            } catch(IOException e) {
+                System.out.println("Listen socket:"+e.getMessage());
             }
-            catch(InterruptedException ie ){
-                ie.printStackTrace();
-            }
-
-            clientes.forEach( x -> System.out.println(x) );
-
-
+        }).start();
     }
 
 }
