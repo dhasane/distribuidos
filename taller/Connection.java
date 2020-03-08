@@ -6,9 +6,9 @@ import java.net.Socket;
 
 public class Connection extends Thread{
 
-    DataInputStream in;
-    DataOutputStream out;
-    Socket clientSocket;
+    private DataInputStream in;
+    private DataOutputStream out;
+    private Socket clientSocket;
 
     public Connection (Socket aClientSocket) {
        try {
@@ -18,26 +18,33 @@ public class Connection extends Thread{
            this.start(); //hilo
        } catch(IOException e){
            System.out.println("Connection:"+e.getMessage());
+           e.printStackTrace();
        }
     }
 
+    // escuchar info entrante
     public void run() {
         try {
-            String data = in.readUTF(); //Datos desde cliente
-            System.out.println("Leí " + data);
-            out.writeUTF("pong"); //Datos para el cliente
+            while (true)
+            {
+                String data = in.readUTF(); //Datos desde cliente
+                System.out.println( clientSocket.getPort() + " envio: " + data);
+            }
         } catch (EOFException e){
             System.out.println("EOF:"+e.getMessage());
+            e.printStackTrace();
         } catch(IOException e){
             System.out.println("readline:"+e.getMessage());
         } finally{
             try {
                 clientSocket.close();
-            }catch (IOException e)
-            {}
+            }catch (IOException e){
+                e.printStackTrace();
+            }
         }
-     }
+    }
 
+    // enviar info
     public void send( String data )
     {
         try{
