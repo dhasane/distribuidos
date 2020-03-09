@@ -7,25 +7,48 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 
-public class TCPCliente {
+public class TCPCliente extends Conector{
 
-    public static void main (String args[]) { // args message and hostname
+    public static void main(String args[]) { // args message and hostname
         int serverPort = 7896;
-        Connection servConn = null;
-        Socket s = null;
-        String texto = args.length >= 1 ? args[0] : "ping";
         try{
             // si hay un segundo argumento, lo toma como la direccion, de lo contrario se conecta a localhost
-            InetAddress host = args.length >=2 ? InetAddress.getByName(args[1]) : InetAddress.getLocalHost();
-            System.out.println(host.toString());
-            servConn = new Connection(new Socket(host, serverPort));
-            servConn.send(texto);
+            InetAddress host = args.length >=1 ? InetAddress.getByName(args[1]) : InetAddress.getLocalHost();
+
+            new TCPCliente(host, serverPort);
         }
         catch(UnknownHostException uhe ){
             uhe.printStackTrace();
         }
+
+    }
+
+    public TCPCliente(InetAddress host, int serverPort){
+
+        Scanner input = new Scanner(System.in);
+        Connection servConn = null;
+        System.out.println(host.toString());
+        try{
+            servConn = new Connection( this, new Socket(host, serverPort));
+            while (true)
+            {
+                servConn.send(input.nextLine());
+            }
+        }
         catch (IOException e){
             System.out.println("readline:"+e.getMessage());
         }
+        input.close();
+    }
+
+    @Override
+    public void respond(String respuesta){
+        System.out.println( " el envio del servidor es: " + respuesta );
+    }
+
+    @Override
+    public void disconnect(Connection c)
+    {
+
     }
 }
