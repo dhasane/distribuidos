@@ -1,7 +1,4 @@
 
-
-
-
 SRCS := $(wildcard *.java)
 BINS := $(SRCS:%.java=%)
 

@@ -9,6 +9,8 @@ import java.util.Scanner;
 
 public class TCPCliente extends Conector{
 
+    private Connection servConn;
+
     public static void main(String args[]) { // args message and hostname
         int serverPort = 7896;
         try{
@@ -20,20 +22,18 @@ public class TCPCliente extends Conector{
         catch(UnknownHostException uhe ){
             uhe.printStackTrace();
         }
-
     }
 
     public TCPCliente(InetAddress host, int serverPort){
+        servConn = null;
 
         Scanner input = new Scanner(System.in);
-        Connection servConn = null;
         System.out.println(host.toString());
         try{
             servConn = new Connection( this, new Socket(host, serverPort));
-            while (true)
-            {
-                servConn.send(input.nextLine());
-            }
+
+            while (servConn.send(input.nextLine()));
+
         }
         catch (IOException e){
             System.out.println("readline:"+e.getMessage());

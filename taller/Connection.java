@@ -13,14 +13,15 @@ public class Connection extends Thread{
     private Conector cnt;
 
     private int tiempo_reintento = 5;
+    private int cantidad_reintentos = 5;
 
     public Connection (Conector conector, Socket aClientSocket) {
         cnt = conector;
         try {
             clientSocket = aClientSocket;
-            in  = new DataInputStream(clientSocket.getInputStream()); //Canal de entrada cliente
-            out = new DataOutputStream(clientSocket.getOutputStream()); //Canal de salida cliente
-           this.start(); //hilo
+            in  = new DataInputStream(clientSocket.getInputStream()); //Canal de entrada
+            out = new DataOutputStream(clientSocket.getOutputStream()); //Canal de salida
+            this.start(); //hilo
         } catch(IOException e){
             System.out.println("Connection:"+e.getMessage());
             e.printStackTrace();
@@ -35,7 +36,6 @@ public class Connection extends Thread{
                 // esto seria chevere ponerlo para envio de objetos genericos
                 String data = in.readUTF(); //Datos desde cliente
                 cnt.respond(data);
-                // System.out.println( clientSocket.getPort() + " envio: " + data);
             }
         } catch (EOFException e){
             System.out.println("EOF:"+e.getMessage());
@@ -54,14 +54,19 @@ public class Connection extends Thread{
     }
 
     // enviar info
-    public void send( String data )
+    public boolean send( String data )
     {
         boolean sent = false;
+        int intentos = cantidad_reintentos ;
         do{
             try{
                 out.writeUTF(data);
                 sent = true;
             } catch(IOException e){
+                if (intentos == 0)
+                    return sent;
+                intentos --;
+
                 System.out.println("readline:"+e.getMessage());
                 e.printStackTrace();
                 try{
@@ -73,5 +78,6 @@ public class Connection extends Thread{
                 }
             }
         }while(!sent);
+        return sent;
     }
 }

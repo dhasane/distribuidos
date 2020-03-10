@@ -8,10 +8,11 @@ import java.util.concurrent.TimeUnit;
 public class TCPServer extends Conector{
 
     private ServerSocket listenSocket;
-    private List<Connection> clientes;
+    private List<Connection> clientes; // esta lista se podria cambiar por el 'broker', que tenga el mapa de topicos con una lista cada uno
 
     public static void main(String[] args) {
-        int serverPort = 7896;   // Puerto a usar
+        // Puerto a usar
+        int serverPort = args.length >=1 ? Integer.parseInt(args[1]) : 7896;
         new TCPServer( serverPort );
     }
 
@@ -23,35 +24,43 @@ public class TCPServer extends Conector{
     @Override
     public void disconnect(Connection c)
     {
+        eliminar(c);
+    }
+
+    private synchronized void eliminar(Connection c)
+    {
         this.clientes.remove(c);
+    }
+
+    private synchronized void agregar(Connection c)
+    {
+        this.clientes.add(c);
     }
 
     public TCPServer( int serverPort )
     {
-
-        clientes = new ArrayList<Connection>();
         try{
             listenSocket = new ServerSocket(serverPort); //Inicializar socket con el puerto
+
+            clientes = new ArrayList<Connection>();
+
+            escucharClientesEntrantes();
+
+            // imprime los cada 10 segundos clientes que se han agregado a la lista
+            while(true)
+            {
+                try{
+                    TimeUnit.SECONDS.sleep(10);
+                }
+                catch(InterruptedException ie ){
+                    ie.printStackTrace();
+                }
+                clientes.forEach( x -> System.out.println(x) );
+            }
         }catch(IOException io){
             io.printStackTrace();
         }
-
-        escucharClientesEntrantes();
-
-        // al minuto imprime los clientes que se han agregado a la lista
-        while(true)
-        {
-            try{
-                TimeUnit.SECONDS.sleep(10);
-            }
-            catch(InterruptedException ie ){
-                ie.printStackTrace();
-            }
-
-            clientes.forEach( x -> System.out.println(x) );
-        }
     }
-
 
     private void escucharClientesEntrantes()
     {
@@ -63,10 +72,7 @@ public class TCPServer extends Conector{
                     //Establecer conexion con el socket del cliente(Hostname, Puerto)
 
                     // Escucha nuevo cliente y agrega en lista
-
-                    // a las operaciones que se hagan sobre 'clientes' probablemente se les deberia poner algun bloqueo,
-                    // para que se pueda tener mayor seguridad al haber paralelismo
-                    clientes.add( new Connection( (Conector) this, listenSocket.accept()) );
+                    agregar( new Connection( (Conector) this, listenSocket.accept()) );
                 }
             } catch(IOException e) {
                 System.out.println("Listen socket:"+e.getMessage());
