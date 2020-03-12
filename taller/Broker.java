@@ -32,6 +32,10 @@ public class Broker{
         if( !this.clientes.contains(c) )
         {
             this.clientes.add(c);
+            this.topicos.put(
+                    c,
+                    new ArrayList<String>()
+            );
             return true;
         }
         return false;
@@ -65,7 +69,10 @@ public class Broker{
     {
         clientes.forEach( x -> {
             System.out.print(x + " : ");
-            this.topicos.get(x).forEach(y -> System.out.print(y + " "));
+            if ( this.topicos.get(x) != null )
+            {
+                this.topicos.get(x).forEach( y -> System.out.print(y + " "));
+            }
             System.out.println();
         });
     }
