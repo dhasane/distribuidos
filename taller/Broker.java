@@ -6,30 +6,92 @@ import java.util.HashMap;
 
 public class Broker{
 
-    Map<String, List<Connection> > conexiones;
+    Map<Connection , List<String> > topicos;
+    private List<Connection> clientes;
 
-    Broker()
+    public Broker()
     {
-        conexiones = new HashMap<String, List<Connection> >();
+        topicos = new HashMap<Connection, List<String> >();
+        clientes = new ArrayList<Connection>();
     }
 
-    public void agregar( String topico, Connection cc){
-        // en caso de que no exista, crea el topico
-        if (conexiones.get(topico) == null )
+    public synchronized boolean eliminar(Connection c)
+    {
+        if( !this.clientes.contains(c) )
         {
-            conexiones.put(
-                    topico,
-                    new ArrayList<Connection>()
+            return false;
+        }
+        this.topicos.remove(c);
+        this.clientes.remove(c);
+        return true;
+    }
+
+    public synchronized boolean agregar(Connection c)
+    {
+        // no pueden haber repetidos
+        if( !this.clientes.contains(c) )
+        {
+            this.clientes.add(c);
+            return true;
+        }
+        return false;
+    }
+
+    public synchronized boolean eliminarTopico(Connection c, String topico)
+    {
+        if( topicos.get(c) == null  )
+        {
+            return false;
+        }
+        topicos.get(c).remove(topico);
+        return true;
+    }
+
+    public synchronized void agregarTopico(Connection c, String topico)
+    {
+        agregar(c);
+
+        if ( topicos.get(c) == null )
+        {
+            topicos.put(
+                    c,
+                    new ArrayList<String>()
             );
         }
-        conexiones.get(topico).add(cc);
+        topicos.get(c).add(topico);
     }
 
-    public void send( String topico, String data )
+    public void print()
     {
-        if (conexiones.get(topico) != null )
-            conexiones.get(topico).forEach( c -> c.send(data) );
+        clientes.forEach( x -> {
+            System.out.print(x + " : ");
+            this.topicos.get(x).forEach(y -> System.out.print(y + " "));
+            System.out.println();
+        });
     }
 
+    // envia a una conexion especifica
+    public void send(Connection c, String data)
+    {
+        c.send(data);
+    }
 
+    // envia a todas las conexiones
+    public void send(String data)
+    {
+        this.clientes.forEach( x -> {
+            x.send(data);
+        });
+    }
+
+    // envia a todas las conexiones de un topico especifico
+    public void send(String topico, String data)
+    {
+        this.clientes.forEach( x -> {
+            if( this.topicos.get(x).contains(topico) )
+            {
+                x.send(data);
+            }
+        });
+    }
 }

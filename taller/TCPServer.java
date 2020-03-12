@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 public class TCPServer extends Conector{
 
     private ServerSocket listenSocket;
-    private List<Connection> clientes; // esta lista se podria cambiar por el 'broker', que tenga el mapa de topicos con una lista cada uno
+    private Broker clientes;
 
     public static void main(String[] args) {
         // Puerto a usar
@@ -24,17 +24,7 @@ public class TCPServer extends Conector{
     @Override
     public void disconnect(Connection c)
     {
-        eliminar(c);
-    }
-
-    private synchronized void eliminar(Connection c)
-    {
-        this.clientes.remove(c);
-    }
-
-    private synchronized void agregar(Connection c)
-    {
-        this.clientes.add(c);
+        clientes.eliminar(c);
     }
 
     public TCPServer( int serverPort )
@@ -42,7 +32,7 @@ public class TCPServer extends Conector{
         try{
             listenSocket = new ServerSocket(serverPort); //Inicializar socket con el puerto
 
-            clientes = new ArrayList<Connection>();
+            clientes = new Broker();
 
             escucharClientesEntrantes();
 
@@ -55,7 +45,7 @@ public class TCPServer extends Conector{
                 catch(InterruptedException ie ){
                     ie.printStackTrace();
                 }
-                clientes.forEach( x -> System.out.println(x) );
+                clientes.print();
             }
         }catch(IOException io){
             io.printStackTrace();
@@ -72,7 +62,7 @@ public class TCPServer extends Conector{
                     //Establecer conexion con el socket del cliente(Hostname, Puerto)
 
                     // Escucha nuevo cliente y agrega en lista
-                    agregar( new Connection( (Conector) this, listenSocket.accept()) );
+                    clientes.agregar( new Connection( this, listenSocket.accept()) );
                 }
             } catch(IOException e) {
                 System.out.println("Listen socket:"+e.getMessage());
