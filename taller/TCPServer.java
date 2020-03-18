@@ -17,8 +17,25 @@ public class TCPServer extends Conector{
     }
 
     @Override
-    public void respond(String respuesta){
-        System.out.println( " el envio del cliente es: " + respuesta );
+    public void respond(Connection c, String respuesta){
+
+        if (respuesta.contains("s:"))
+        {
+            System.out.println("suscrito");
+            this.clientes.agregarTopico(c, respuesta.split(":")[1].trim());
+        }
+
+        if (respuesta.contains("e:"))
+        {
+            System.out.println("enviando");
+            this.clientes.send(respuesta.split(":")[1].trim(), respuesta.split(":")[2].trim());
+        }
+
+        if (respuesta.contains("i:"))
+        {
+            System.out.println("imprimiendo");
+            this.clientes.print();
+        }
     }
 
     @Override
@@ -37,16 +54,16 @@ public class TCPServer extends Conector{
             escucharClientesEntrantes();
 
             // imprime los cada 10 segundos clientes que se han agregado a la lista
-            while(true)
-            {
-                try{
-                    TimeUnit.SECONDS.sleep(10);
-                }
-                catch(InterruptedException ie ){
-                    ie.printStackTrace();
-                }
-                clientes.print();
-            }
+            // while(true)
+            // {
+            //     try{
+            //         TimeUnit.SECONDS.sleep(10);
+            //     }
+            //     catch(InterruptedException ie ){
+            //         ie.printStackTrace();
+            //     }
+            //     clientes.print();
+            // }
         }catch(IOException io){
             io.printStackTrace();
         }

@@ -32,8 +32,13 @@ public class TCPCliente extends Conector{
         try{
             servConn = new Connection( this, new Socket(host, serverPort));
 
-            while (servConn.send(input.nextLine()));
+            System.out.println(" se puede hacer:");
+            System.out.println(" [e]nvio     \t (e: topico: mensaje)");
+            System.out.println(" [s]uscribir \t (s: topico)");
+            System.out.println(" [i]mprimir  \t (i:)");
+            System.out.println(" la parte de texto no tiene excepciones, entonces matara la conexion si el texto no cuadra");
 
+            while (enviar(input.nextLine()));
         }
         catch (IOException e){
             System.out.println("readline:"+e.getMessage());
@@ -41,14 +46,21 @@ public class TCPCliente extends Conector{
         input.close();
     }
 
+    boolean enviar(String data)
+    {
+        // aqui seria interesante convertir los datos a json o algo asi para poderlos enviar de forma relativamente generica
+        return servConn.send(data);
+    }
+
     @Override
-    public void respond(String respuesta){
+    public void respond(Connection c,String respuesta){
         System.out.println( " el envio del servidor es: " + respuesta );
     }
 
     @Override
     public void disconnect(Connection c)
     {
-
+        System.out.println("chao");
+        System.exit(0);
     }
 }

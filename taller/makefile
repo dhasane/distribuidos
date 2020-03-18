@@ -15,8 +15,12 @@ server: TCPServer.class Connection.class
 	@echo $<
 
 %.class: %.java
+	rm *.class
 	javac $<
 
 
 basico:
 	javac *.java
+
+clean:
+	rm *.class

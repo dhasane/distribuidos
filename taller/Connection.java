@@ -35,7 +35,7 @@ public class Connection extends Thread{
             {
                 // esto seria chevere ponerlo para envio de objetos genericos
                 String data = in.readUTF(); //Datos desde cliente
-                cnt.respond(data);
+                cnt.respond(this, data);
             }
         } catch (EOFException e){
             System.out.println("EOF:"+e.getMessage());
@@ -77,6 +77,9 @@ public class Connection extends Thread{
                     ie.printStackTrace();
                 }
             }
+            // se le podria agregar tambien para que espere una respuesta
+            // o algo asi como cnt.sent(), para que esa sea la clase que elija como responder
+            // o agregar una lista de identificadores de lo que se ha enviado, y que en escuchar(run) reciba cierto 'comando' para decir 'listo el receptor recibio el mensaje'
         }while(!sent);
         return sent;
     }

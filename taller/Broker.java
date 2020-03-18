@@ -67,6 +67,7 @@ public class Broker{
 
     public void print()
     {
+        System.out.println();
         clientes.forEach( x -> {
             System.out.print(x + " : ");
             if ( this.topicos.get(x) != null )
