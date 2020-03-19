@@ -1,3 +1,7 @@
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,16 +13,34 @@ public class Computador extends Conector{
     private Broker broker;
     private List<Pais> paises;
 
-    public static void main(String args[]) {
 
-    }
-
-    Computador()
+    Computador(int port)
     {
         this.paises = new ArrayList<Pais>();
 
         //                       yo que se como responder y por donde escucho
-        this.broker = new Broker(this, 5432);
+        this.broker = new Broker(this, port);
+    }
+
+    public void agregarConexion(String strcon, int port)
+    {
+        try{
+            InetAddress host = InetAddress.getByName(strcon);
+
+            broker.agregar(
+                new Connection(
+                    this,
+                    new Socket(host, port)
+                )
+            );
+        }
+        catch(UnknownHostException uhe ){
+            // uhe.printStackTrace();
+            System.out.println("direccion no encontrada");
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
 
