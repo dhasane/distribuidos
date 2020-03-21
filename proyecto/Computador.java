@@ -19,7 +19,7 @@ public class Computador extends Conector{
         this.paises = new ArrayList<Pais>();
 
         //                       yo que se como responder y por donde escucho
-        this.broker = new Broker(this, port);
+        this.broker = new Broker(this, port, 500);
     }
 
     public void agregarConexion(String strcon, int port)
@@ -43,6 +43,40 @@ public class Computador extends Conector{
         }
     }
 
+    @Override
+    public int peso()
+    {
+        int peso = 0;
+        for( Pais pais: this.paises )
+        {
+            peso += pais.getPoblacion();
+        }
+        return peso;
+    }
+
+    // retorna el pais que reduzca la diferencia dentro del umbral aceptable o
+    // el menor pais, a pesar de que aun no se cumpla
+    @Override
+    public Object conseguirObjetoPeso(int diferencia,int umbral)
+    {
+        int poblacion;
+        Pais paisRetorno = null;
+        for(Pais pais: this.paises)
+        {
+            poblacion = pais.getPoblacion();
+
+            if( diferencia - poblacion < umbral)
+            {
+                this.paises.remove(pais);
+                return pais;
+            }
+            if( paisRetorno == null || poblacion < paisRetorno.getPoblacion() )
+            {
+                paisRetorno = pais;
+            }
+        }
+        return paisRetorno;
+    }
 
     @Override
     public void respond(Connection c, String respuesta)

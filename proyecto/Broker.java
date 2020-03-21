@@ -9,14 +9,17 @@ public class Broker{
 
     private ServerSocket listenSocket;
     private List<Connection> clientes;
+    private Conector cnt;
+    private int umbral; // umbral aceptable de diferencia entre pesos de distintos
 
-    public Broker(Conector cnt, int serverPort)
+    public Broker(Conector cnt, int serverPort, int umbral)
     {
         try
         {
-            listenSocket = new ServerSocket(serverPort); //Inicializar socket con el puerto
-            clientes = new ArrayList<Connection>();
-            escucharConexionesEntrantes(cnt);
+            this.listenSocket = new ServerSocket(serverPort); //Inicializar socket con el puerto
+            this.clientes = new ArrayList<Connection>();
+            this.cnt = cnt;
+            escucharConexionesEntrantes();
         }
         catch(IOException ioe )
         {
@@ -24,8 +27,34 @@ public class Broker{
         }
     }
 
+    // se balancea cada vez que se agrega o elimina un elemento
+    private void balancear()
+    {
+        // tengo este nuevo peso
+        // ustedes cuanto peso tienen?
+        int miPeso = cnt.peso();
+        this.clientes.forEach(cliente ->{
+
+            // esta funcion seria para enviar un mensaje y esperar su respuesta
+            int peso = cliente.sendRespond("oiga, paseme su peso");
+
+            int diferencia = miPeso - peso;
+
+            if ( diferencia < 0 ) diferencia *= -1;
+
+            if ( diferencia >= umbral )
+            {
+                // tu que tienes un peso suficientemente distinto al mio(dentro de un umbral), te paso una de mis clases que te acerque lo mejor posible al promedio entre tu peso y mi peso
+                Object obj = cnt.conseguirObjetoPeso(diferencia, umbral);
+
+            }
+
+        });
+        // si ya le pase o recibi una clase, no tengo que preguntarle al resto
+    }
+
     // el broker se quedara escuchando por conexiones entrantes
-    private void escucharConexionesEntrantes(Conector cnt)
+    private void escucharConexionesEntrantes()
     {
         // hilo que espera a que lleguen nuevos clientes
         new Thread( () -> {
@@ -50,6 +79,7 @@ public class Broker{
             return false;
         }
         this.clientes.remove(c);
+        balancear();
         return true;
     }
 
@@ -59,6 +89,7 @@ public class Broker{
         if( !this.clientes.contains(c) )
         {
             this.clientes.add(c);
+            balancear();
             return true;
         }
         return false;

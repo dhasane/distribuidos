@@ -7,4 +7,9 @@ public abstract class Conector {
     // evento de desconexion de un socket
     abstract public void disconnect(Connection c);
 
+    // la cantidad de computo que realiza este conector
+    abstract public int peso();
+
+    // retorna un objeto, para enviarselo a otro
+    abstract public Object conseguirObjetoPeso(int diferencia,int umbral);
 }

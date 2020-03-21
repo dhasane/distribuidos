@@ -15,5 +15,10 @@ class Pais{
     {
     }
 
+    public int getPoblacion()
+    {
+        return this.poblacion;
+    }
+
 
 }
