@@ -28,12 +28,14 @@ public class Broker{
     }
 
     // se balancea cada vez que se agrega o elimina un elemento
+    // tal vez seria mejor preguntarles a todos el promedio y despues si trabajar sobre eso
     private void balancear()
     {
         // tengo este nuevo peso
         // ustedes cuanto peso tienen?
         int miPeso = cnt.peso();
-        this.clientes.forEach(cliente ->{
+        for( Connection cliente: this.clientes)
+        {
 
             // esta funcion seria para enviar un mensaje y esperar su respuesta
             int peso = cliente.sendRespond("oiga, paseme su peso");
@@ -47,10 +49,14 @@ public class Broker{
                 // tu que tienes un peso suficientemente distinto al mio(dentro de un umbral), te paso una de mis clases que te acerque lo mejor posible al promedio entre tu peso y mi peso
                 Object obj = cnt.conseguirObjetoPeso(diferencia, umbral);
 
-            }
+                // se le envia un "comando" y el objeto
+                // algo asi como : "agregar", obj
+                cliente.send("agregue esta cosa", obj);
 
-        });
-        // si ya le pase o recibi una clase, no tengo que preguntarle al resto
+                // si ya le pase o recibi una clase, no tengo que preguntarle al resto
+                return;
+            }
+        }
     }
 
     // el broker se quedara escuchando por conexiones entrantes
