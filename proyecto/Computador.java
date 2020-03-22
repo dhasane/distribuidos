@@ -9,7 +9,7 @@ import java.util.List;
 
 public class Computador extends Conector{
 
-    // contiee una lista de las conexiones
+    // contiene una lista de las conexiones
     private Broker broker;
     private List<Pais> paises;
 
@@ -79,7 +79,7 @@ public class Computador extends Conector{
     }
 
     @Override
-    public void respond(Connection c, String respuesta)
+    public void respond(Connection c, Mensaje respuesta)
     {
 
     }

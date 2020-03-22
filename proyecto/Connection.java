@@ -1,26 +1,32 @@
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class Connection extends Thread{
 
-    private DataInputStream in;
-    private DataOutputStream out;
+    private ObjectInputStream in;
+    private ObjectOutputStream out;
     private Socket clientSocket;
     private Conector cnt;
+    private int esperandoRespuesta;
+    private List<Mensaje> respuestas;
 
     private int tiempo_reintento = 5;
     private int cantidad_reintentos = 5;
 
     public Connection (Conector conector, Socket aClientSocket) {
+        this.esperandoRespuesta = 0;
+        respuestas = new ArrayList<Mensaje>();
         cnt = conector;
         try {
             clientSocket = aClientSocket;
-            in  = new DataInputStream(clientSocket.getInputStream()); //Canal de entrada
-            out = new DataOutputStream(clientSocket.getOutputStream()); //Canal de salida
+            in  = new ObjectInputStream(clientSocket.getInputStream()); //Canal de entrada
+            out = new ObjectOutputStream(clientSocket.getOutputStream()); //Canal de salida
             this.start(); //hilo
         } catch(IOException e){
             System.out.println("Connection:"+e.getMessage());
@@ -34,9 +40,19 @@ public class Connection extends Thread{
             while (true)
             {
                 // esto seria chevere ponerlo para envio de objetos genericos
-                String data = in.readUTF(); //Datos desde cliente
-                cnt.respond(this, data);
+                Mensaje data = (Mensaje) in.readObject(); //Datos desde cliente
+                if ( data.getTipo() == Mensaje.respond )
+                {
+                    this.respuestas.add(data);
+                    this.esperandoRespuesta--;
+                }
+                else
+                {
+                    cnt.respond(this, data);
+                }
             }
+        } catch(ClassNotFoundException e){
+            e.printStackTrace();
         } catch (EOFException e){
             System.out.println("EOF:"+e.getMessage());
         } catch(IOException e){
@@ -54,13 +70,13 @@ public class Connection extends Thread{
     }
 
     // enviar info
-    public boolean send( String data )
+    public boolean send( Mensaje data )
     {
         boolean sent = false;
         int intentos = cantidad_reintentos ;
         do{
             try{
-                out.writeUTF(data);
+                out.writeObject(data);
                 sent = true;
             } catch(IOException e){
                 if (intentos == 0)
@@ -82,5 +98,25 @@ public class Connection extends Thread{
             // o agregar una lista de identificadores de lo que se ha enviado, y que en escuchar(run) reciba cierto 'comando' para decir 'listo el receptor recibio el mensaje'
         }while(!sent);
         return sent;
+    }
+
+    // envia un mensaje y espera respuesta, es bloqueante
+    public Mensaje sendRespond( Mensaje mensaje )
+    {
+        Mensaje respuesta=null;
+        send(mensaje);
+
+        int respInicial = this.esperandoRespuesta;
+
+        while( respInicial >= esperandoRespuesta);
+
+        // aqui busca la respuesta que espera por id o algo asi
+
+        // esto puede que de un error por el orden,
+        // pero por el momento lo voy a dejar asi :v
+        respuesta = this.respuestas.get(0);
+        this.respuestas.remove(0);
+
+        return respuesta;
     }
 }

@@ -34,11 +34,18 @@ public class Broker{
         // tengo este nuevo peso
         // ustedes cuanto peso tienen?
         int miPeso = cnt.peso();
+        Mensaje respuesta = null;
         for( Connection cliente: this.clientes)
         {
 
             // esta funcion seria para enviar un mensaje y esperar su respuesta
-            int peso = cliente.sendRespond("oiga, paseme su peso");
+            respuesta = cliente.sendRespond(
+                    new Mensaje(
+                        Mensaje.request,
+                        "oiga, paseme su peso"
+                    )
+            );
+            int peso = (int) respuesta.getContenido();
 
             int diferencia = miPeso - peso;
 
@@ -112,14 +119,24 @@ public class Broker{
     // envia a una conexion especifica
     public void send(Connection c, String data)
     {
-        c.send(data);
+        c.send(
+            new Mensaje(
+                Mensaje.simple,
+                data
+            )
+        );
     }
 
     // envia a todas las conexiones
     public void send(String data)
     {
         this.clientes.forEach( x -> {
-            x.send(data);
+            x.send(
+                new Mensaje(
+                    Mensaje.simple,
+                    data
+                )
+            );
         });
     }
 }
