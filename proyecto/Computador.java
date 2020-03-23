@@ -75,7 +75,7 @@ public class Computador extends Conector{
         return peso;
     }
 
-    // retorna el pais que reduzca la diferencia dentro del umbral aceptable
+    // retorna el pais mas pequeno que satisfaga el umbral
     @Override
     public Object conseguirObjetoPeso(int diferencia,int umbral)
     {
@@ -87,8 +87,8 @@ public class Computador extends Conector{
 
             Utils.print( broker.getNombre() + " cambio seria :" + diferencia + " -> " + poblacion + "   umbral : " + umbral);
 
-            // 0 < poblacion < umbral y que sea el minimo posible
-            if( poblacion <= umbral && 0 <= poblacion &&
+            // -umbral < poblacion < umbral y que sea el minimo posible
+            if( poblacion <= umbral && umbral*-1 <= poblacion &&
                     (
                         paisRetorno == null ||
                         pais.getPoblacion() < paisRetorno.getPoblacion())
