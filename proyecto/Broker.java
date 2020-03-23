@@ -37,31 +37,40 @@ public class Broker{
     // tal vez seria mejor preguntarles a todos el promedio y despues si trabajar sobre eso
     public void balancear()
     {
+
+        // si se balancea, puede volver a intentar balancear
+        boolean continuarBalanceo;
+
         // tengo este nuevo peso
         // ustedes cuanto peso tienen?
-        int miPeso = cnt.peso();
-        Mensaje respuesta = null;
-        boolean terminar = false;
-        for( Connection cliente: this.clientes )
-        {
-
-            // esta funcion seria para enviar un mensaje y esperar su respuesta
-            respuesta = cliente.sendRespond(
-                    new Mensaje(
-                        Mensaje.request,
-                        "oiga su peso"
-                    )
-            );
-
-            // que no este vacio y que el contenido sea int
-            if ( respuesta != null && respuesta.getContenido().getClass() == Integer.class )
+        do{
+            continuarBalanceo = false;
+            int miPeso = cnt.peso();
+            Mensaje respuesta = null;
+            boolean terminar = false;
+            for( Connection cliente: this.clientes )
             {
-                int peso = (int) respuesta.getContenido();
-                terminar |= balancearCliente(cliente, miPeso, peso);
-            }
 
-            if (terminar) break;
-        }
+                // esta funcion seria para enviar un mensaje y esperar su respuesta
+                respuesta = cliente.sendRespond(
+                        new Mensaje(
+                            Mensaje.request,
+                            "oiga su peso"
+                        )
+                );
+
+                // que no este vacio y que el contenido sea int
+                if ( respuesta != null && respuesta.getContenido().getClass() == Integer.class )
+                {
+                    int peso = (int) respuesta.getContenido();
+                    terminar |= balancearCliente(cliente, miPeso, peso);
+                }
+
+                continuarBalanceo |= terminar;
+
+                if (terminar) break;
+            }
+        }while(continuarBalanceo);
     }
 
     // balancear contra un solo cliente

@@ -1,4 +1,5 @@
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 class Main{
     public static void main(String args[]) {
@@ -26,8 +27,6 @@ class Main{
             )
         );
 
-        comp1.agregarConexion(local, c2);
-
         comp2.agregarPais(
             new Pais(
                 "chile",
@@ -35,6 +34,34 @@ class Main{
                 3
             )
         );
+        comp2.agregarPais(
+            new Pais(
+                "chile",
+                3000,
+                3
+            )
+        );
+        comp2.agregarPais(
+            new Pais(
+                "chile",
+                3000,
+                3
+            )
+        );
+        comp1.agregarConexion(local, c2);
+
+
+        try
+        {
+            TimeUnit.SECONDS.sleep(15);
+        }
+        catch(InterruptedException ie)
+        {
+            ie.printStackTrace();
+        }
+
+        comp1.imprimir();
+        comp2.imprimir();
 
         // aqui deberian quedar
         // comp1 : total 5000
