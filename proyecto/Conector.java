@@ -7,6 +7,9 @@ public abstract class Conector {
     // evento de desconexion de un socket
     abstract public void disconnect(Connection c);
 
+    // en caso de llegar una nueva conexion
+    abstract public void nuevaConexion(Connection c);
+
     // la cantidad de computo que realiza este conector
     abstract public int peso();
 

@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import jdk.jshell.execution.Util;
+
 public class Connection extends Thread{
 
     private ObjectInputStream in;
@@ -25,13 +27,20 @@ public class Connection extends Thread{
         cnt = conector;
         try {
             clientSocket = aClientSocket;
-            in  = new ObjectInputStream(clientSocket.getInputStream()); //Canal de entrada
             out = new ObjectOutputStream(clientSocket.getOutputStream()); //Canal de salida
+            out.flush();
+            in  = new ObjectInputStream(clientSocket.getInputStream()); //Canal de entrada
+            // Utils.print("nueva conexion entrante de " + clientSocket.getInetAddress().toString() + ":" + clientSocket.getPort() );
             this.start(); //hilo
         } catch(IOException e){
             System.out.println("Connection:"+e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public String getNombre()
+    {
+        return this.clientSocket.getPort() + "";
     }
 
     // escuchar info entrante
@@ -108,9 +117,21 @@ public class Connection extends Thread{
 
         int respInicial = this.esperandoRespuesta;
 
-        while( respInicial >= esperandoRespuesta);
+        this.esperandoRespuesta ++;
 
         // aqui busca la respuesta que espera por id o algo asi
+        while( respInicial < esperandoRespuesta ){
+            try
+            {
+                // por alguna razon tiene que haber aqui una pausa
+                // que si no, como que no sirve....
+                TimeUnit.SECONDS.sleep(1);
+            }
+            catch(InterruptedException ie)
+            {
+                ie.printStackTrace();
+            }
+        }
 
         // esto puede que de un error por el orden,
         // pero por el momento lo voy a dejar asi :v

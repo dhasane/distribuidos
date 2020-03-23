@@ -1,11 +1,12 @@
+import java.io.Serializable;
 
-
-class Mensaje{
+class Mensaje implements Serializable{
 
     public static int simple  = 0; // no espera respuesta
     public static int request = 1; // espera respuesta
     public static int respond = 2; // respuesta de un request
     public static int accept  = 3; // respuesta de una respuesta :v
+    public static int add     = 4; // agregar el elemento enviado
 
 
     private int tipo;
@@ -25,6 +26,11 @@ class Mensaje{
     int getTipo()
     {
         return this.tipo;
+    }
+
+    public void print()
+    {
+        Utils.print(this.tipo + ":" + this.contenido);
     }
 
 

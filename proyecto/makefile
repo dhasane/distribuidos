@@ -1,22 +1,12 @@
 
-SRCS := $(wildcard *.java)
-BINS := $(SRCS:%.java=%)
-
-all: ${BINS}
-	@echo ${BINS}
-
-start: Main.class
+start: Main.class Broker.class Computador.class Conector.class Connection.class Mensaje.class Pais.class Utils.class
 	java Main
 
-%: %.class
-	@echo $<
+# %: %.class
+	# @echo $<
 
 %.class: %.java
-	rm *.class
 	javac $<
-
-basico:
-	javac -d *.java
 
 clean:
 	rm *.class

@@ -19,6 +19,7 @@ public class Broker{
             this.listenSocket = new ServerSocket(serverPort); //Inicializar socket con el puerto
             this.clientes = new ArrayList<Connection>();
             this.cnt = cnt;
+            this.umbral = umbral;
             escucharConexionesEntrantes();
         }
         catch(IOException ioe )
@@ -27,43 +28,73 @@ public class Broker{
         }
     }
 
+    public String getNombre()
+    {
+        return this.listenSocket.getLocalPort() + "";
+    }
+
     // se balancea cada vez que se agrega o elimina un elemento
     // tal vez seria mejor preguntarles a todos el promedio y despues si trabajar sobre eso
-    private void balancear()
+    public void balancear()
     {
         // tengo este nuevo peso
         // ustedes cuanto peso tienen?
         int miPeso = cnt.peso();
         Mensaje respuesta = null;
-        for( Connection cliente: this.clientes)
+        boolean terminar = false;
+        for( Connection cliente: this.clientes )
         {
 
             // esta funcion seria para enviar un mensaje y esperar su respuesta
             respuesta = cliente.sendRespond(
                     new Mensaje(
                         Mensaje.request,
-                        "oiga, paseme su peso"
+                        "oiga su peso"
                     )
             );
-            int peso = (int) respuesta.getContenido();
 
-            int diferencia = miPeso - peso;
-
-            if ( diferencia < 0 ) diferencia *= -1;
-
-            if ( diferencia >= umbral )
+            // que no este vacio y que el contenido sea int
+            if ( respuesta != null && respuesta.getContenido().getClass() == Integer.class )
             {
-                // tu que tienes un peso suficientemente distinto al mio(dentro de un umbral), te paso una de mis clases que te acerque lo mejor posible al promedio entre tu peso y mi peso
-                Object obj = cnt.conseguirObjetoPeso(diferencia, umbral);
+                int peso = (int) respuesta.getContenido();
+                terminar |= balancearCliente(cliente, miPeso, peso);
+            }
 
-                // se le envia un "comando" y el objeto
-                // algo asi como : "agregar", obj
-                cliente.send("agregue esta cosa", obj);
+            if (terminar) break;
+        }
+    }
+
+    // balancear contra un solo cliente
+    public boolean balancearCliente( Connection cliente, int miPeso, int peso ){
+
+        int diferencia = miPeso - peso;
+        int original = diferencia;
+
+        if ( diferencia < 0 ) diferencia *= -1;
+
+        Utils.print("la diferencia es " + diferencia );
+        if ( diferencia >= this.umbral )
+        {
+            // tu que tienes un peso suficientemente distinto al mio(dentro de un umbral), te paso una de mis clases que te acerque lo mejor posible al promedio entre tu peso y mi peso
+            Object obj = cnt.conseguirObjetoPeso(original, this.umbral);
+
+            Utils.print( "el objeto que voy a enviar es :" + obj);
+
+            // se le envia un "comando" y el objeto
+            // algo asi como : "agregar", obj
+            if (obj != null){
+                cliente.send(
+                    new Mensaje(
+                        Mensaje.add,
+                        obj
+                    )
+                );
 
                 // si ya le pase o recibi una clase, no tengo que preguntarle al resto
-                return;
+                return true;
             }
         }
+        return false;
     }
 
     // el broker se quedara escuchando por conexiones entrantes
@@ -77,7 +108,9 @@ public class Broker{
                     //Establecer conexion con el socket del cliente(Hostname, Puerto)
 
                     // Escucha nuevo cliente y agrega en lista
-                    agregar( new Connection( cnt, listenSocket.accept()) );
+                    cnt.nuevaConexion(
+                            new Connection( cnt, listenSocket.accept())
+                    );
                 }
             } catch(IOException e) {
                 System.out.println("Listen socket:"+e.getMessage());
@@ -92,7 +125,6 @@ public class Broker{
             return false;
         }
         this.clientes.remove(c);
-        balancear();
         return true;
     }
 
@@ -102,18 +134,9 @@ public class Broker{
         if( !this.clientes.contains(c) )
         {
             this.clientes.add(c);
-            balancear();
             return true;
         }
         return false;
-    }
-
-    public void print()
-    {
-        System.out.println();
-        clientes.forEach( x -> {
-            System.out.println(x + " : ");
-        });
     }
 
     // envia a una conexion especifica
@@ -125,6 +148,11 @@ public class Broker{
                 data
             )
         );
+    }
+
+    public void send(Connection c, Mensaje data)
+    {
+        c.send(data);
     }
 
     // envia a todas las conexiones
