@@ -80,19 +80,25 @@ public class Computador extends Conector{
     public Object conseguirObjetoPeso(int diferencia,int umbral)
     {
         int poblacion;
+        Pais paisRetorno = null;
         for(Pais pais: this.paises)
         {
             poblacion = diferencia - pais.getPoblacion();
 
             Utils.print( broker.getNombre() + " cambio seria :" + diferencia + " -> " + poblacion + "   umbral : " + umbral);
 
-            if( poblacion <= umbral && 0 < poblacion )
+            // 0 < poblacion < umbral y que sea el minimo posible
+            if( poblacion <= umbral && 0 <= poblacion &&
+                    (
+                        paisRetorno == null ||
+                        pais.getPoblacion() < paisRetorno.getPoblacion())
+                    )
             {
-                this.paises.remove(pais);
-                return pais;
+                paisRetorno = pais;
             }
         }
-        return null;
+        if(paisRetorno != null) this.paises.remove(paisRetorno);
+        return paisRetorno;
     }
 
     @Override

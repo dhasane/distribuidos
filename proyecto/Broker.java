@@ -67,10 +67,11 @@ public class Broker{
     // balancear contra un solo cliente
     public boolean balancearCliente( Connection cliente, int miPeso, int peso ){
 
-        int diferencia = miPeso - peso;
+        int diferencia = (miPeso - peso)/2;
         int original = diferencia;
 
         if ( diferencia < 0 ) diferencia *= -1;
+
 
         Utils.print("la diferencia es " + diferencia );
         if ( diferencia >= this.umbral )
@@ -78,7 +79,7 @@ public class Broker{
             // tu que tienes un peso suficientemente distinto al mio(dentro de un umbral), te paso una de mis clases que te acerque lo mejor posible al promedio entre tu peso y mi peso
             Object obj = cnt.conseguirObjetoPeso(original, this.umbral);
 
-            Utils.print( "el objeto que voy a enviar es :" + obj);
+            Utils.print( this.getNombre() + " el objeto que voy a enviar es :" + obj);
 
             // se le envia un "comando" y el objeto
             // algo asi como : "agregar", obj
