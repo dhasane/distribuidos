@@ -30,7 +30,6 @@ public class Connection extends Thread{
             out = new ObjectOutputStream(clientSocket.getOutputStream()); //Canal de salida
             out.flush();
             in  = new ObjectInputStream(clientSocket.getInputStream()); //Canal de entrada
-            // Utils.print("nueva conexion entrante de " + clientSocket.getInetAddress().toString() + ":" + clientSocket.getPort() );
             this.start(); //hilo
         } catch(IOException e){
             System.out.println("Connection:"+e.getMessage());
@@ -48,7 +47,6 @@ public class Connection extends Thread{
         try {
             while (true)
             {
-                // esto seria chevere ponerlo para envio de objetos genericos
                 Mensaje data = (Mensaje) in.readObject(); //Datos desde cliente
                 if ( data.getTipo() == Mensaje.respond )
                 {

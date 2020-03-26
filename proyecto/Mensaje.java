@@ -28,9 +28,9 @@ class Mensaje implements Serializable{
         return this.tipo;
     }
 
-    public void print()
+    public String toString()
     {
-        Utils.print(this.tipo + ":" + this.contenido);
+        return this.tipo + ":" + this.contenido;
     }
 
 

@@ -1,3 +1,4 @@
+import java.util.List;
 
 public abstract class Conector {
 
@@ -13,6 +14,10 @@ public abstract class Conector {
     // la cantidad de computo que realiza este conector
     abstract public int peso();
 
-    // retorna un objeto, para enviarselo a otro
-    abstract public Object conseguirObjetoPeso(int diferencia,int umbral);
+    // retorna el peso de los objetos
+    abstract public List<Integer> pesoObjetos();
+
+    // retorna el objeto en la posicion del index
+    abstract public Object getObject(int index);
+
 }

@@ -3,6 +3,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Map;
+
+
 import java.util.HashMap;
 
 public class Broker{
@@ -73,23 +75,48 @@ public class Broker{
         }while(continuarBalanceo);
     }
 
+    // saca el valor absoluto
+    private int abs(int num) {
+        return num < 0 ? num * -1 : num;
+    }
+
     // balancear contra un solo cliente
-    public boolean balancearCliente( Connection cliente, int miPeso, int peso ){
+    public boolean balancearCliente( Connection cliente, int miPeso, int peso ) {
 
         int diferencia = (miPeso - peso)/2;
-        int original = diferencia;
 
-        if ( diferencia < 0 ) diferencia *= -1;
-
-
-        Utils.print("la diferencia es " + diferencia );
-        if ( diferencia >= this.umbral )
+        // Utils.print("la diferencia es " + diferencia );
+        if ( abs(diferencia) >= this.umbral )
         {
             // tu que tienes un peso suficientemente distinto al mio(dentro de un umbral), te paso una de mis clases que te acerque lo mejor posible al promedio entre tu peso y mi peso
-            Object obj = cnt.conseguirObjetoPeso(original, this.umbral);
 
-            Utils.print( this.getNombre() + " el objeto que voy a enviar es :" + obj);
+            List<Integer> pesos = cnt.pesoObjetos();
 
+            int index = -1;
+            int paisMinimo = 0;
+            int poblacion;
+
+            int posicion = 0;
+            for(Integer pais: pesos)
+            {
+                poblacion = diferencia - pais;
+
+                // Utils.print( getNombre() + " cambio seria :" + diferencia + " -> " + poblacion + "   umbral : " + umbral);
+
+                // -umbral < poblacion < umbral y que sea el minimo posible
+                if( abs(poblacion) <= umbral && ( index == -1 || pais < paisMinimo) )
+                {
+                    paisMinimo = pais;
+                    index = posicion;
+                }
+                posicion++;
+            }
+
+            // Utils.print("se selecciono el index : " + index);
+
+            Object obj = cnt.getObject(index);
+
+            // Utils.print( this.getNombre() + " el objeto que voy a enviar es :" + obj);
             // se le envia un "comando" y el objeto
             // algo asi como : "agregar", obj
             if (obj != null){

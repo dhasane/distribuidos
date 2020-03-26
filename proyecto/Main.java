@@ -34,22 +34,8 @@ class Main{
                 3
             )
         );
-        comp2.agregarPais(
-            new Pais(
-                "chile",
-                3000,
-                3
-            )
-        );
-        comp2.agregarPais(
-            new Pais(
-                "chile",
-                3000,
-                3
-            )
-        );
-        comp1.agregarConexion(local, c2);
 
+        comp1.agregarConexion(local, c2);
 
         try
         {

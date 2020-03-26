@@ -5,6 +5,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 // representa lo que correra en un computador, falta definir un mejor nombre
 
@@ -25,22 +26,22 @@ public class Computador extends Conector{
 
     public void imprimir()
     {
-        String prt = broker.getNombre() + " : ";
+        String prt = broker.getNombre() + " -> ";
 
+        int pesoTotal = 0;
         for(Pais p: this.paises)
         {
             prt += p.toString() + ", ";
+            pesoTotal += p.getPoblacion();
         }
-        Utils.print( prt );
+        Utils.print( prt + " ( total : " + pesoTotal + " )" );
     }
 
     public void agregarPais(Pais p)
     {
         Utils.print( broker.getNombre() + " agregando pais " + p.getNombre());
-        this.paises.add(p);
-        imprimir();
+        agregar(p);
         broker.balancear();
-        imprimir();
     }
 
     public void agregarConexion(String strcon, int port)
@@ -75,36 +76,48 @@ public class Computador extends Conector{
         return peso;
     }
 
-    // retorna el pais mas pequeno que satisfaga el umbral
     @Override
-    public Object conseguirObjetoPeso(int diferencia,int umbral)
+    public List<Integer> pesoObjetos()
     {
-        int poblacion;
-        Pais paisRetorno = null;
-        for(Pais pais: this.paises)
+        return this.paises.stream()
+                          .map( p -> p.getPoblacion() )
+                          .collect(Collectors.toList());
+    }
+
+    private synchronized void agregar(Pais p)
+    {
+        if (p != null)
         {
-            poblacion = diferencia - pais.getPoblacion();
-
-            Utils.print( broker.getNombre() + " cambio seria :" + diferencia + " -> " + poblacion + "   umbral : " + umbral);
-
-            // -umbral < poblacion < umbral y que sea el minimo posible
-            if( poblacion <= umbral && umbral*-1 <= poblacion &&
-                    (
-                        paisRetorno == null ||
-                        pais.getPoblacion() < paisRetorno.getPoblacion())
-                    )
-            {
-                paisRetorno = pais;
-            }
+            this.paises.add(p);
+            imprimir();
         }
-        if(paisRetorno != null) this.paises.remove(paisRetorno);
-        return paisRetorno;
+    }
+
+    private synchronized void eliminar(Pais p)
+    {
+        if (this.paises.contains(p))
+        {
+            this.paises.remove(p);
+            imprimir();
+        }
+    }
+
+    @Override
+    public Object getObject(int index)
+    {
+        Pais p = null;
+        if (0 <= index && index < this.paises.size())
+        {
+            p = this.paises.get(index);
+            eliminar(p);
+        }
+        return p;
     }
 
     @Override
     public void respond(Connection c, Mensaje respuesta)
     {
-        respuesta.print();
+        Utils.print( this.broker.getNombre() + " mensaje entrante: " + respuesta.toString() );
 
         int tipo = respuesta.getTipo();
 
@@ -135,8 +148,7 @@ public class Computador extends Conector{
 
                 if (respuesta.getContenido().getClass() == Pais.class)
                 {
-                    this.paises.add((Pais)respuesta.getContenido());
-                    imprimir();
+                    agregar((Pais)respuesta.getContenido());
                 }
 
                 break;
