@@ -125,10 +125,13 @@ public class Computador extends Conector{
         {
             case 0: // simple
 
+                // texto simple que no importa, o algo asi
+
                 break;
             case 1: // request
                 Object obj = answerRequest(respuesta);
 
+                // se envia respond
                 broker.send(
                     c,
                     new Mensaje(
@@ -140,8 +143,19 @@ public class Computador extends Conector{
                 break;
             case 2: // respond
 
+                // en teoria es para contestar un request
+                // pero para esto ya hay una funcion que atrapa directamente
+                // el respond
+
+                // en teoria aca se deberia enviar un accept
+
+                // el problema es que los accept por el momento no hacen nada
+                // porque no hay algo asi como una "cola" de envios previos
+
                 break;
             case 3: // accept
+
+                // si se recibe no se reenvia lo anterior
 
                 break;
             case 4: // add
@@ -151,6 +165,19 @@ public class Computador extends Conector{
                     agregar((Pais)respuesta.getContenido());
                 }
 
+                // en teoria aca se deberia enviar un accept
+
+                break;
+            case 5: // weight - piden el peso
+
+                // weight es un request, entonces responde
+                broker.send(
+                    c,
+                    new Mensaje(
+                        Mensaje.respond,
+                        this.peso()
+                    )
+                );
                 break;
         }
     }
@@ -159,12 +186,6 @@ public class Computador extends Conector{
     {
         if (request.getContenido().getClass() == String.class)
         {
-            String pedido = (String)request.getContenido();
-
-            if(pedido.equals("oiga su peso"))
-            {
-                return this.peso();
-            }
         }
         return null;
     }

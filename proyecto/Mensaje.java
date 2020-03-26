@@ -7,6 +7,7 @@ class Mensaje implements Serializable{
     public static int respond = 2; // respuesta de un request
     public static int accept  = 3; // respuesta de una respuesta :v
     public static int add     = 4; // agregar el elemento enviado
+    public static int weight  = 5; // pide el "peso de procesamiento"
 
 
     private int tipo;

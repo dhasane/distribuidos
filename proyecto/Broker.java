@@ -56,8 +56,8 @@ public class Broker{
                 // esta funcion seria para enviar un mensaje y esperar su respuesta
                 respuesta = cliente.sendRespond(
                         new Mensaje(
-                            Mensaje.request,
-                            "oiga su peso"
+                            Mensaje.weight,
+                            "oiga su peso" // el contenido no importa
                         )
                 );
 
