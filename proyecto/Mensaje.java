@@ -3,11 +3,14 @@ import java.io.Serializable;
 class Mensaje implements Serializable{
 
     public static int simple  = 0; // no espera respuesta
+
     public static int request = 1; // espera respuesta
     public static int respond = 2; // respuesta de un request
     public static int accept  = 3; // respuesta de una respuesta :v
+
     public static int add     = 4; // agregar el elemento enviado
     public static int weight  = 5; // pide el "peso de procesamiento"
+    public static int step    = 6; // tipo de request, envia un paso de tiempo
 
 
     private int tipo;

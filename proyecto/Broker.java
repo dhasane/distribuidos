@@ -14,6 +14,8 @@ public class Broker{
     private Conector cnt;
     private int umbral; // umbral aceptable de diferencia entre pesos de distintos
 
+    private boolean continuar;
+
     public Broker(Conector cnt, int serverPort, int umbral)
     {
         try
@@ -22,6 +24,7 @@ public class Broker{
             this.clientes = new ArrayList<Connection>();
             this.cnt = cnt;
             this.umbral = umbral;
+            this.continuar = true;
             escucharConexionesEntrantes();
         }
         catch(IOException ioe )
@@ -33,6 +36,20 @@ public class Broker{
     public String getNombre()
     {
         return this.listenSocket.getLocalPort() + "";
+    }
+
+    public void detener()
+    {
+        this.continuar = false;
+        try{
+
+            this.listenSocket.close();
+        }
+        catch(IOException e)
+        {
+            e.printStackTrace();
+        }
+        this.clientes.forEach(c->c.detener());
     }
 
     // se balancea cada vez que se agrega o elimina un elemento
@@ -116,6 +133,8 @@ public class Broker{
 
             Object obj = cnt.getObject(index);
 
+            Utils.print(obj.getClass());
+
             // Utils.print( this.getNombre() + " el objeto que voy a enviar es :" + obj);
             // se le envia un "comando" y el objeto
             // algo asi como : "agregar", obj
@@ -134,23 +153,28 @@ public class Broker{
         return false;
     }
 
+
     // el broker se quedara escuchando por conexiones entrantes
     private void escucharConexionesEntrantes()
     {
         // hilo que espera a que lleguen nuevos clientes
         new Thread( () -> {
-            try{
-                while(true) {
+            while(continuar) {
+
+                try{
                     //Esperar en modo escucha al cliente
                     //Establecer conexion con el socket del cliente(Hostname, Puerto)
-
                     // Escucha nuevo cliente y agrega en lista
                     cnt.nuevaConexion(
-                            new Connection( cnt, listenSocket.accept())
+                            new Connection( cnt, listenSocket.accept() )
                     );
+
+                } catch(IOException e) {
+                    System.out.println("Listen socket:"+e.getMessage());
                 }
-            } catch(IOException e) {
-                System.out.println("Listen socket:"+e.getMessage());
+                // catch (InterruptedException e) {
+                //     continuar = false;
+                // }
             }
         }).start();
     }
@@ -187,21 +211,50 @@ public class Broker{
         );
     }
 
+    public void sendAware( String receptor, Mensaje mensaje )
+    {
+        if( !cnt.local(receptor, mensaje) )
+        {
+            this.clientes.forEach( x -> {
+                x.send( mensaje );
+            });
+        }
+    }
+
     public void send(Connection c, Mensaje data)
     {
         c.send(data);
     }
 
+    public void sendRandomAdd(Object obj)
+    {
+        // si no hay nadie a quien enviarle los objetos, nada que hacer
+        if(this.clientes.isEmpty())
+            return;
+
+        // de lo contrario lo envia a una conexion aleatoria, con el fin de no
+        // perder el objeto al desconectar este Conector
+        this.clientes.get((int) random(0,this.clientes.size())).send(
+            new Mensaje(
+                Mensaje.add,
+                obj
+            )
+        );
+    }
+
     // envia a todas las conexiones
-    public void send(String data)
+    public void send(Mensaje data)
     {
         this.clientes.forEach( x -> {
-            x.send(
-                new Mensaje(
-                    Mensaje.simple,
-                    data
-                )
-            );
+            x.send( data );
         });
+    }
+
+    private double random( int inferior, int superior )
+    {
+        double val = Math.random();
+        if ( val < 0 ) val *= -1;
+        val *= (superior-inferior);
+        return val;
     }
 }

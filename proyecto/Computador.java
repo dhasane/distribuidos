@@ -37,10 +37,57 @@ public class Computador extends Conector{
         Utils.print( prt + " ( total : " + pesoTotal + " )" );
     }
 
-    public void agregarPais(Pais p)
+    // a mi me pasa el tiempo y le digo al resto que tambien lo pasen
+    public void step(int pasos)
     {
-        Utils.print( broker.getNombre() + " agregando pais " + p.getNombre());
-        agregar(p);
+        receiveStep(pasos);
+        this.broker.send(
+            new Mensaje(
+                Mensaje.step,
+                pasos
+            )
+        );
+    }
+
+    public void stop()
+    {
+        this.paises.forEach( p -> {
+            p.detener();
+            this.broker.sendRandomAdd(p);
+        });
+        this.broker.detener();
+    }
+
+    public void receiveStep(int pasos)
+    {
+        this.paises.forEach( p -> {
+            p.step(pasos);
+        });
+    }
+
+    public void agregarPais(
+            String nombre,
+            int poblacion,
+            int enfermos_iniciales,
+            double posibilidad_viaje,
+            double posibilidad_viaje_aereo,
+            String[] vecinos,
+            String[] vecinos_aereos
+            )
+    {
+        Utils.print( broker.getNombre() + " agregando pais " + nombre );
+        agregar(
+            new Pais(
+                this.broker,
+                nombre,
+                poblacion,
+                enfermos_iniciales,
+                posibilidad_viaje,
+                posibilidad_viaje_aereo,
+                vecinos,
+                vecinos_aereos
+            )
+        );
         broker.balancear();
     }
 
@@ -109,9 +156,11 @@ public class Computador extends Conector{
         if (0 <= index && index < this.paises.size())
         {
             p = this.paises.get(index);
+            p.detener();
             eliminar(p);
+            Utils.print(p.prt());
         }
-        return p;
+        return new PaisEnvio(p);
     }
 
     @Override
@@ -201,6 +250,24 @@ public class Computador extends Conector{
     public void disconnect(Connection c)
     {
         broker.eliminar(c);
+    }
+
+    @Override
+    public boolean local(String receptor, Mensaje mensaje)
+    {
+        if (mensaje.getContenido().getClass() == Viajero.class)
+        {
+            Viajero v = (Viajero)mensaje.getContenido();
+            for( Pais pais: this.paises )
+            {
+                if (pais.getNombre() == receptor)
+                {
+                    pais.viajeroEntrante(v);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 }

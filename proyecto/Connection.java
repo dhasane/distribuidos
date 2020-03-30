@@ -21,6 +21,8 @@ public class Connection extends Thread{
     private int tiempo_reintento = 5;
     private int cantidad_reintentos = 5;
 
+    private boolean continuar;
+
     public Connection (Conector conector, Socket aClientSocket) {
         this.esperandoRespuesta = 0;
         respuestas = new ArrayList<Mensaje>();
@@ -30,6 +32,7 @@ public class Connection extends Thread{
             out = new ObjectOutputStream(clientSocket.getOutputStream()); //Canal de salida
             out.flush();
             in  = new ObjectInputStream(clientSocket.getInputStream()); //Canal de entrada
+            this.continuar = true;
             this.start(); //hilo
         } catch(IOException e){
             System.out.println("Connection:"+e.getMessage());
@@ -42,10 +45,15 @@ public class Connection extends Thread{
         return this.clientSocket.getPort() + "";
     }
 
+    public void detener()
+    {
+        this.continuar = false;
+    }
+
     // escuchar info entrante
     public void run() {
         try {
-            while (true)
+            while (continuar)
             {
                 Mensaje data = (Mensaje) in.readObject(); //Datos desde cliente
                 if ( data.getTipo() == Mensaje.respond )

@@ -20,4 +20,6 @@ public abstract class Conector {
     // retorna el objeto en la posicion del index
     abstract public Object getObject(int index);
 
+    // verificar si el receptor esta en local, y si lo esta pasarle el mensaje
+    abstract public boolean local(String receptor, Mensaje mensaje);
 }
