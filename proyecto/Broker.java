@@ -3,12 +3,15 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 import java.util.HashMap;
 
 public class Broker{
 
+    private Logger LOGGER;
     private ServerSocket listenSocket;
     private List<Connection> clientes;
     private Conector cnt;
@@ -26,6 +29,7 @@ public class Broker{
             this.umbral = umbral;
             this.continuar = true;
             escucharConexionesEntrantes();
+            LOGGER = Utils.getLogger(this, this.getNombre());
         }
         catch(IOException ioe )
         {
@@ -138,7 +142,6 @@ public class Broker{
             // se le envia un "comando" y el objeto
             // algo asi como : "agregar", obj
             if (obj != null){
-                Utils.print("el objeto a enviar es : " + obj.getClass());
                 cliente.send(
                     new Mensaje(
                         Mensaje.add,

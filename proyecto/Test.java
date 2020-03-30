@@ -65,7 +65,6 @@ class Test{
             ie.printStackTrace();
         }
 
-        Utils.print("stop");
         comp.stop();
     }
 

@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE log SYSTEM "logger.dtd">
+<log>
+<record>
+  <date>2020-03-30T17:05:11.142145Z</date>
+  <millis>1585587911142</millis>
+  <nanos>145000</nanos>
+  <sequence>2</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>agregarPais</method>
+  <thread>1</thread>
+  <message>agregando pais peru</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:11.156412Z</date>
+  <millis>1585587911156</millis>
+  <nanos>412000</nanos>
+  <sequence>3</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>imprimir</method>
+  <thread>1</thread>
+  <message>5432 -&gt; peru : 5000,  ( total : 5000 )</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:11.164482Z</date>
+  <millis>1585587911164</millis>
+  <nanos>482000</nanos>
+  <sequence>4</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>agregarPais</method>
+  <thread>1</thread>
+  <message>agregando pais chile</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:11.182275Z</date>
+  <millis>1585587911182</millis>
+  <nanos>275000</nanos>
+  <sequence>5</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>imprimir</method>
+  <thread>1</thread>
+  <message>5432 -&gt; peru : 5000, chile : 3000,  ( total : 8000 )</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:11.382023Z</date>
+  <millis>1585587911382</millis>
+  <nanos>23000</nanos>
+  <sequence>7</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>respond</method>
+  <thread>18</thread>
+  <message>mensaje entrante: 5:oiga su peso</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:12.368851Z</date>
+  <millis>1585587912368</millis>
+  <nanos>851000</nanos>
+  <sequence>8</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>imprimir</method>
+  <thread>14</thread>
+  <message>5432 -&gt; peru : 5000,  ( total : 5000 )</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:12.380902Z</date>
+  <millis>1585587912380</millis>
+  <nanos>902000</nanos>
+  <sequence>9</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>respond</method>
+  <thread>18</thread>
+  <message>mensaje entrante: 6:20</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:15.142731Z</date>
+  <millis>1585587915142</millis>
+  <nanos>731000</nanos>
+  <sequence>25</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>respond</method>
+  <thread>18</thread>
+  <message>mensaje entrante: 7:Viajero@599b68e0</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:16.155555Z</date>
+  <millis>1585587916155</millis>
+  <nanos>555000</nanos>
+  <sequence>33</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>respond</method>
+  <thread>18</thread>
+  <message>mensaje entrante: 7:Viajero@5c5de00a</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:16.164284Z</date>
+  <millis>1585587916164</millis>
+  <nanos>284000</nanos>
+  <sequence>34</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>respond</method>
+  <thread>18</thread>
+  <message>mensaje entrante: 7:Viajero@50e49434</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:19.178841Z</date>
+  <millis>1585587919178</millis>
+  <nanos>841000</nanos>
+  <sequence>47</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>respond</method>
+  <thread>18</thread>
+  <message>mensaje entrante: 7:Viajero@26283394</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:21.193950Z</date>
+  <millis>1585587921193</millis>
+  <nanos>950000</nanos>
+  <sequence>58</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>respond</method>
+  <thread>18</thread>
+  <message>mensaje entrante: 7:Viajero@24f693d9</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:22.207014Z</date>
+  <millis>1585587922207</millis>
+  <nanos>14000</nanos>
+  <sequence>67</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>respond</method>
+  <thread>18</thread>
+  <message>mensaje entrante: 7:Viajero@17986afd</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:23.225362Z</date>
+  <millis>1585587923225</millis>
+  <nanos>362000</nanos>
+  <sequence>71</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>respond</method>
+  <thread>18</thread>
+  <message>mensaje entrante: 7:Viajero@6329090e</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:27.242173Z</date>
+  <millis>1585587927242</millis>
+  <nanos>173000</nanos>
+  <sequence>90</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>respond</method>
+  <thread>18</thread>
+  <message>mensaje entrante: 7:Viajero@47a226c</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:27.392037Z</date>
+  <millis>1585587927392</millis>
+  <nanos>37000</nanos>
+  <sequence>93</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>imprimir</method>
+  <thread>1</thread>
+  <message>5432 -&gt; peru : 4987,  ( total : 4987 )</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:28.249809Z</date>
+  <millis>1585587928249</millis>
+  <nanos>809000</nanos>
+  <sequence>96</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>respond</method>
+  <thread>18</thread>
+  <message>mensaje entrante: 7:Viajero@14020161</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:29.258927Z</date>
+  <millis>1585587929258</millis>
+  <nanos>927000</nanos>
+  <sequence>103</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>respond</method>
+  <thread>18</thread>
+  <message>mensaje entrante: 7:Viajero@40995e9e</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:29.264855Z</date>
+  <millis>1585587929264</millis>
+  <nanos>855000</nanos>
+  <sequence>104</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>respond</method>
+  <thread>18</thread>
+  <message>mensaje entrante: 7:Viajero@6bd35efa</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:30.270147Z</date>
+  <millis>1585587930270</millis>
+  <nanos>147000</nanos>
+  <sequence>109</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>respond</method>
+  <thread>18</thread>
+  <message>mensaje entrante: 7:Viajero@3eef68ae</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:30.277524Z</date>
+  <millis>1585587930277</millis>
+  <nanos>524000</nanos>
+  <sequence>110</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>respond</method>
+  <thread>18</thread>
+  <message>mensaje entrante: 7:Viajero@3a627f1b</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:31.280426Z</date>
+  <millis>1585587931280</millis>
+  <nanos>426000</nanos>
+  <sequence>114</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>respond</method>
+  <thread>18</thread>
+  <message>mensaje entrante: 7:Viajero@3005bb67</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:32.287461Z</date>
+  <millis>1585587932287</millis>
+  <nanos>461000</nanos>
+  <sequence>123</sequence>
+  <logger>Computador5432</logger>
+  <level>INFO</level>
+  <class>Computador</class>
+  <method>respond</method>
+  <thread>18</thread>
+  <message>mensaje entrante: 7:Viajero@41501713</message>
+</record>
+</log>

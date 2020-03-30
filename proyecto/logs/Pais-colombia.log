@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE log SYSTEM "logger.dtd">
+<log>
+<record>
+  <date>2020-03-30T17:05:13.114671Z</date>
+  <millis>1585587913114</millis>
+  <nanos>671000</nanos>
+  <sequence>13</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (3/2000) quedan 20 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:14.123099Z</date>
+  <millis>1585587914123</millis>
+  <nanos>99000</nanos>
+  <sequence>16</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (9/2000) quedan 19 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:15.127246Z</date>
+  <millis>1585587915127</millis>
+  <nanos>246000</nanos>
+  <sequence>23</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (81/2000) quedan 18 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:15.131555Z</date>
+  <millis>1585587915131</millis>
+  <nanos>555000</nanos>
+  <sequence>24</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>viaje</method>
+  <thread>15</thread>
+  <message>persona viaja a: peru</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:16.142721Z</date>
+  <millis>1585587916142</millis>
+  <nanos>721000</nanos>
+  <sequence>30</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (2000/1999) quedan 17 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:16.148176Z</date>
+  <millis>1585587916148</millis>
+  <nanos>176000</nanos>
+  <sequence>31</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>viaje</method>
+  <thread>15</thread>
+  <message>persona viaja a: peru</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:16.154947Z</date>
+  <millis>1585587916154</millis>
+  <nanos>947000</nanos>
+  <sequence>32</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>viaje</method>
+  <thread>15</thread>
+  <message>persona viaja a: chile</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:17.161736Z</date>
+  <millis>1585587917161</millis>
+  <nanos>736000</nanos>
+  <sequence>41</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (1999/1997) quedan 16 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:18.166319Z</date>
+  <millis>1585587918166</millis>
+  <nanos>319000</nanos>
+  <sequence>43</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (1997/1997) quedan 15 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:19.169665Z</date>
+  <millis>1585587919169</millis>
+  <nanos>665000</nanos>
+  <sequence>45</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (1997/1997) quedan 14 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:19.172814Z</date>
+  <millis>1585587919172</millis>
+  <nanos>814000</nanos>
+  <sequence>46</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>viaje</method>
+  <thread>15</thread>
+  <message>persona viaja a: peru</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:20.178652Z</date>
+  <millis>1585587920178</millis>
+  <nanos>652000</nanos>
+  <sequence>51</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (1997/1996) quedan 13 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:21.184068Z</date>
+  <millis>1585587921184</millis>
+  <nanos>68000</nanos>
+  <sequence>56</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (1996/1996) quedan 12 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:21.188200Z</date>
+  <millis>1585587921188</millis>
+  <nanos>200000</nanos>
+  <sequence>57</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>viaje</method>
+  <thread>15</thread>
+  <message>persona viaja a: chile</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:22.198185Z</date>
+  <millis>1585587922198</millis>
+  <nanos>185000</nanos>
+  <sequence>65</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (1996/1995) quedan 11 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:22.200841Z</date>
+  <millis>1585587922200</millis>
+  <nanos>841000</nanos>
+  <sequence>66</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>viaje</method>
+  <thread>15</thread>
+  <message>persona viaja a: peru</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:23.210523Z</date>
+  <millis>1585587923210</millis>
+  <nanos>523000</nanos>
+  <sequence>69</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (1995/1994) quedan 10 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:23.214044Z</date>
+  <millis>1585587923214</millis>
+  <nanos>44000</nanos>
+  <sequence>70</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>viaje</method>
+  <thread>15</thread>
+  <message>persona viaja a: peru</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:24.225044Z</date>
+  <millis>1585587924225</millis>
+  <nanos>44000</nanos>
+  <sequence>78</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (1994/1993) quedan 9 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:25.228083Z</date>
+  <millis>1585587925228</millis>
+  <nanos>83000</nanos>
+  <sequence>82</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (1993/1993) quedan 8 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:26.232014Z</date>
+  <millis>1585587926232</millis>
+  <nanos>14000</nanos>
+  <sequence>86</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (1993/1993) quedan 7 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:27.235744Z</date>
+  <millis>1585587927235</millis>
+  <nanos>744000</nanos>
+  <sequence>88</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (1993/1993) quedan 6 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:27.238230Z</date>
+  <millis>1585587927238</millis>
+  <nanos>230000</nanos>
+  <sequence>89</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>viaje</method>
+  <thread>15</thread>
+  <message>persona viaja a: peru</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:28.241843Z</date>
+  <millis>1585587928241</millis>
+  <nanos>843000</nanos>
+  <sequence>94</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (1993/1992) quedan 5 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:28.244517Z</date>
+  <millis>1585587928244</millis>
+  <nanos>517000</nanos>
+  <sequence>95</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>viaje</method>
+  <thread>15</thread>
+  <message>persona viaja a: peru</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:29.252069Z</date>
+  <millis>1585587929252</millis>
+  <nanos>69000</nanos>
+  <sequence>100</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (1992/1991) quedan 4 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:29.254676Z</date>
+  <millis>1585587929254</millis>
+  <nanos>676000</nanos>
+  <sequence>101</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>viaje</method>
+  <thread>15</thread>
+  <message>persona viaja a: peru</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:29.258514Z</date>
+  <millis>1585587929258</millis>
+  <nanos>514000</nanos>
+  <sequence>102</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>viaje</method>
+  <thread>15</thread>
+  <message>persona viaja a: chile</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:30.262521Z</date>
+  <millis>1585587930262</millis>
+  <nanos>521000</nanos>
+  <sequence>106</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (1991/1989) quedan 3 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:30.265820Z</date>
+  <millis>1585587930265</millis>
+  <nanos>820000</nanos>
+  <sequence>107</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>viaje</method>
+  <thread>15</thread>
+  <message>persona viaja a: peru</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:30.269421Z</date>
+  <millis>1585587930269</millis>
+  <nanos>421000</nanos>
+  <sequence>108</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>viaje</method>
+  <thread>15</thread>
+  <message>persona viaja a: chile</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:31.273468Z</date>
+  <millis>1585587931273</millis>
+  <nanos>468000</nanos>
+  <sequence>112</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (1989/1987) quedan 2 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:31.276367Z</date>
+  <millis>1585587931276</millis>
+  <nanos>367000</nanos>
+  <sequence>113</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>viaje</method>
+  <thread>15</thread>
+  <message>persona viaja a: peru</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:32.280420Z</date>
+  <millis>1585587932280</millis>
+  <nanos>420000</nanos>
+  <sequence>121</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>run</method>
+  <thread>15</thread>
+  <message>pasa un dia : colombia : (1987/1986) quedan 1 dias</message>
+</record>
+<record>
+  <date>2020-03-30T17:05:32.283212Z</date>
+  <millis>1585587932283</millis>
+  <nanos>212000</nanos>
+  <sequence>122</sequence>
+  <logger>Paiscolombia</logger>
+  <level>INFO</level>
+  <class>Pais</class>
+  <method>viaje</method>
+  <thread>15</thread>
+  <message>persona viaja a: peru</message>
+</record>
+</log>

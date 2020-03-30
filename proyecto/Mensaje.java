@@ -12,6 +12,8 @@ class Mensaje implements Serializable{
     public static int weight  = 5; // pide el "peso de procesamiento"
     public static int step    = 6; // tipo de request, envia un paso de tiempo
 
+    public static int viajero = 7; // es mas facil declararlas por aca ....
+
 
     private int tipo;
     private Object contenido;

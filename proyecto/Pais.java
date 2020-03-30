@@ -2,11 +2,14 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 // aqui se va a tener la informacion de un pais
 
 class Pais extends Thread implements Serializable{
-
+    private Logger LOGGER;
     private String nombre;
     private int poblacion;
     private int enfermos;
@@ -75,6 +78,7 @@ class Pais extends Thread implements Serializable{
         this.steps = steps;
         this.continuar = true;
         this.start();
+        LOGGER = Utils.getLogger(this, this.nombre);
     }
 
     public String prt()
@@ -88,7 +92,7 @@ class Pais extends Thread implements Serializable{
         {
             if(steps > 0)
             {
-                Utils.print("pasa un dia : " + prt() + " quedan " + steps + " dias" );
+                LOGGER.log(Level.INFO, "pasa un dia : " + prt() + " quedan " + steps + " dias" );
                 infectar();
                 if( random(0,1) < posibilidad_viaje )
                 {
@@ -110,8 +114,7 @@ class Pais extends Thread implements Serializable{
                 ie.printStackTrace();
             }
         }
-
-        Utils.print(this.nombre + " detenido");
+        LOGGER.log(Level.INFO, "detenido" );
     }
 
 
@@ -140,6 +143,7 @@ class Pais extends Thread implements Serializable{
 
     public void viajeroEntrante(Viajero v)
     {
+        LOGGER.log(Level.INFO, "persona llega de : " + v.getOrigen() );
         agregarPoblacion();
         if(v.enfermo())
         {
@@ -154,14 +158,16 @@ class Pais extends Thread implements Serializable{
         if ( destinos.length == 0 )
             return;
         String pais = destinos[ (int) random(0, destinos.length) ];
-        Utils.print("se mueve de : " + this.getNombre() + " a: " + pais);
+        LOGGER.log(Level.INFO, "persona viaja a: " + pais );
 
         this.broker.sendAware(
             pais,
             new Mensaje(
-                Mensaje.simple,
+                Mensaje.viajero,
                 new Viajero(
-                    this.enfermos > 0 ? random(0,1) < this.poblacion / this.enfermos : false
+                    this.enfermos > 0 ? random(0,1) < this.poblacion / this.enfermos : false,
+                    this.nombre,
+                    pais
                 )
             )
         );

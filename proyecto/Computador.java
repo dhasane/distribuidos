@@ -5,6 +5,8 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 // representa lo que correra en un computador, falta definir un mejor nombre
@@ -14,7 +16,7 @@ public class Computador extends Conector{
     // contiene una lista de las conexiones
     private Broker broker;
     private List<Pais> paises;
-
+    private Logger LOGGER;
 
     Computador(int port, int umbral)
     {
@@ -22,6 +24,7 @@ public class Computador extends Conector{
 
         //                       yo que se como responder y por donde escucho
         this.broker = new Broker(this, port, umbral);
+        LOGGER = Utils.getLogger(this, this.broker.getNombre());
     }
 
     public void imprimir()
@@ -34,7 +37,7 @@ public class Computador extends Conector{
             prt += p.toString() + ", ";
             pesoTotal += p.getPoblacion();
         }
-        Utils.print( prt + " ( total : " + pesoTotal + " )" );
+        LOGGER.log(Level.INFO,  prt + " ( total : " + pesoTotal + " )" );
     }
 
     // a mi me pasa el tiempo y le digo al resto que tambien lo pasen
@@ -58,7 +61,7 @@ public class Computador extends Conector{
         this.broker.detener();
     }
 
-    public void receiveStep(int pasos)
+    public synchronized void receiveStep(int pasos)
     {
         this.paises.forEach( p -> {
             p.step(pasos);
@@ -75,7 +78,7 @@ public class Computador extends Conector{
             String[] vecinos_aereos
             )
     {
-        Utils.print( broker.getNombre() + " agregando pais " + nombre );
+        LOGGER.log(Level.INFO, "agregando pais " + nombre  );
         agregar(
             new Pais(
                 this.broker,
@@ -160,7 +163,7 @@ public class Computador extends Conector{
             pa.detener();
             pe = new PaisEnvio( pa );
             eliminar( pa );
-            Utils.print("moviendo " + pe.getNombre());
+            // Utils.print("moviendo " + pe.getNombre());
         }
         return pe;
     }
@@ -168,7 +171,7 @@ public class Computador extends Conector{
     @Override
     public void respond(Connection c, Mensaje respuesta)
     {
-        Utils.print( this.broker.getNombre() + " mensaje entrante: " + respuesta.toString() );
+        LOGGER.log( Level.INFO, "mensaje entrante: " + respuesta.toString() );
 
         int tipo = respuesta.getTipo();
 
@@ -176,7 +179,7 @@ public class Computador extends Conector{
         {
             case 0: // simple
 
-                Utils.print("llego mensaje simple : ");
+                // Utils.print("llego mensaje simple : ");
 
                 // texto simple que no importa, o algo asi
 
@@ -239,6 +242,27 @@ public class Computador extends Conector{
                 if ( respuesta.getContenido().getClass() == Integer.class )
                 {
                     receiveStep( (int) respuesta.getContenido() );
+                }
+
+                break;
+            case 7:
+
+                if(  respuesta.getContenido().getClass() == Viajero.class )
+                {
+
+                    Viajero v = (Viajero) respuesta.getContenido();
+                    // conseguir destino de viajero
+                    String destino = v.getDestino();
+
+                    this.paises.forEach( p -> {
+
+                        if(p.getNombre() == destino )
+                        {
+                            p.viajeroEntrante(v);
+                        }
+                    });
+
+
                 }
 
                 break;
