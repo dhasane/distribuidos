@@ -1,6 +1,6 @@
+import java.io.Serializable;
 
-
-class Viajero{
+class Viajero implements Serializable{
 
     private boolean enfermo;
 

@@ -133,12 +133,12 @@ public class Broker{
 
             Object obj = cnt.getObject(index);
 
-            Utils.print(obj.getClass());
 
             // Utils.print( this.getNombre() + " el objeto que voy a enviar es :" + obj);
             // se le envia un "comando" y el objeto
             // algo asi como : "agregar", obj
             if (obj != null){
+                Utils.print("el objeto a enviar es : " + obj.getClass());
                 cliente.send(
                     new Mensaje(
                         Mensaje.add,

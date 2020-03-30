@@ -144,6 +144,7 @@ public class Computador extends Conector{
     {
         if (this.paises.contains(p))
         {
+            p.detener();
             this.paises.remove(p);
             imprimir();
         }
@@ -152,15 +153,16 @@ public class Computador extends Conector{
     @Override
     public Object getObject(int index)
     {
-        Pais p = null;
+        PaisEnvio pe = null;
         if (0 <= index && index < this.paises.size())
         {
-            p = this.paises.get(index);
-            p.detener();
-            eliminar(p);
-            Utils.print(p.prt());
+            Pais pa = this.paises.get(index);
+            pa.detener();
+            pe = new PaisEnvio( pa );
+            eliminar( pa );
+            Utils.print("moviendo " + pe.getNombre());
         }
-        return new PaisEnvio(p);
+        return pe;
     }
 
     @Override
@@ -173,6 +175,8 @@ public class Computador extends Conector{
         switch(tipo)
         {
             case 0: // simple
+
+                Utils.print("llego mensaje simple : ");
 
                 // texto simple que no importa, o algo asi
 
@@ -209,9 +213,11 @@ public class Computador extends Conector{
                 break;
             case 4: // add
 
-                if (respuesta.getContenido().getClass() == Pais.class)
+                if (respuesta.getContenido().getClass() == PaisEnvio.class)
                 {
-                    agregar((Pais)respuesta.getContenido());
+                    agregar(
+                        new Pais((PaisEnvio)respuesta.getContenido(), this.broker)
+                    );
                 }
 
                 // en teoria aca se deberia enviar un accept
@@ -227,6 +233,14 @@ public class Computador extends Conector{
                         this.peso()
                     )
                 );
+                break;
+
+            case 6:
+                if ( respuesta.getContenido().getClass() == Integer.class )
+                {
+                    receiveStep( (int) respuesta.getContenido() );
+                }
+
                 break;
         }
     }

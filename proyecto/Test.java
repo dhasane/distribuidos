@@ -119,6 +119,8 @@ class Test{
 
         comp1.agregarConexion(local, c2);
 
+        comp1.step(20);
+
         try
         {
             TimeUnit.SECONDS.sleep(15);
