@@ -13,6 +13,7 @@ class PaisEnvio implements Serializable{
     private int enfermos;
     private boolean continuar;
     private int steps; // pasos que faltan para ir al tiempo
+    private int maxStep; // pasos agregados
 
     private double posibilidad_viaje;
     private double posibilidad_viaje_aereo;
@@ -30,6 +31,7 @@ class PaisEnvio implements Serializable{
         this.vecinos = p.getVecinos();
         this.vecinos_aereos = p.getVecinos_aereos();
         this.steps = p.getSteps();
+        this.maxStep = p.getMaxStep();
     }
 
     public int getEnfermos()
@@ -70,5 +72,10 @@ class PaisEnvio implements Serializable{
     public String getNombre()
     {
         return this.nombre;
+    }
+
+    public int getMaxStep()
+    {
+        return this.maxStep;
     }
 }

@@ -45,18 +45,13 @@ public class Connection extends Thread{
         return this.clientSocket.getPort() + "";
     }
 
-    public void detener()
-    {
-        this.continuar = false;
-    }
-
     // escuchar info entrante
     public void run() {
         try {
             while (continuar)
             {
                 Mensaje data = (Mensaje) in.readObject(); //Datos desde cliente
-                if ( data.getTipo() == Mensaje.respond )
+                if ( this.esperandoRespuesta > 0 && data.getTipo() == Mensaje.respond )
                 {
                     this.respuestas.add(data);
                     this.esperandoRespuesta--;
@@ -68,11 +63,12 @@ public class Connection extends Thread{
             }
         } catch(ClassNotFoundException e){
             e.printStackTrace();
-        } catch (EOFException e){
+        } catch(EOFException e){
             System.out.println("EOF:"+e.getMessage());
         } catch(IOException e){
             System.out.println("readline:"+e.getMessage());
-        } finally{
+        }
+        finally{
             try {
                 clientSocket.close();
             }catch (IOException e){
@@ -81,6 +77,18 @@ public class Connection extends Thread{
             finally{
                 cnt.disconnect(this);
             }
+        }
+    }
+
+    public void detener()
+    {
+        this.continuar = false;
+        try{
+            this.clientSocket.close();
+        }
+        catch(IOException e)
+        {
+            e.printStackTrace();
         }
     }
 

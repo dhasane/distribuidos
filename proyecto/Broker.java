@@ -5,11 +5,9 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-
 import java.util.HashMap;
 
-public class Broker{
+public class Broker extends Thread{
 
     private Logger LOGGER;
     private ServerSocket listenSocket;
@@ -28,7 +26,8 @@ public class Broker{
             this.cnt = cnt;
             this.umbral = umbral;
             this.continuar = true;
-            escucharConexionesEntrantes();
+            // escucharConexionesEntrantes();
+            this.start();
             LOGGER = Utils.getLogger(this, this.getNombre());
         }
         catch(IOException ioe )
@@ -42,19 +41,6 @@ public class Broker{
         return this.listenSocket.getLocalPort() + "";
     }
 
-    public void detener()
-    {
-        this.continuar = false;
-        try{
-
-            this.listenSocket.close();
-        }
-        catch(IOException e)
-        {
-            e.printStackTrace();
-        }
-        this.clientes.forEach(c->c.detener());
-    }
 
     // se balancea cada vez que se agrega o elimina un elemento
     // tal vez seria mejor preguntarles a todos el promedio y despues si trabajar sobre eso
@@ -158,28 +144,48 @@ public class Broker{
 
 
     // el broker se quedara escuchando por conexiones entrantes
-    private void escucharConexionesEntrantes()
+    // private void escucharConexionesEntrantes()
+    public void run()
     {
         // hilo que espera a que lleguen nuevos clientes
-        new Thread( () -> {
+        try{
             while(continuar) {
+                //Esperar en modo escucha al cliente
+                //Establecer conexion con el socket del cliente(Hostname, Puerto)
+                // Escucha nuevo cliente y agrega en lista
+                cnt.nuevaConexion(
+                        new Connection( cnt, listenSocket.accept() )
+                );
 
-                try{
-                    //Esperar en modo escucha al cliente
-                    //Establecer conexion con el socket del cliente(Hostname, Puerto)
-                    // Escucha nuevo cliente y agrega en lista
-                    cnt.nuevaConexion(
-                            new Connection( cnt, listenSocket.accept() )
-                    );
-
-                } catch(IOException e) {
-                    System.out.println("Listen socket:"+e.getMessage());
-                }
-                // catch (InterruptedException e) {
-                //     continuar = false;
-                // }
             }
-        }).start();
+        } catch(IOException e) {
+            System.out.println("Listen socket:"+e.getMessage());
+        }
+        finally
+        {
+            try{
+                this.listenSocket.close();
+            }
+            catch(IOException e)
+            {
+                e.printStackTrace();
+            }
+
+            LOGGER.log(Level.INFO, "cerrando puerto : " + this.getNombre() );
+            this.clientes.forEach(c->c.detener());
+        }
+    }
+
+    public void detener()
+    {
+        this.continuar = false;
+        try{
+            this.listenSocket.close();
+        }
+        catch(IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public synchronized boolean eliminar(Connection c)
@@ -218,6 +224,7 @@ public class Broker{
     {
         if( !cnt.local(receptor, mensaje) )
         {
+            LOGGER = Utils.getLogger(this, "enviando " + mensaje.getContenido() + " a otro computador" );
             this.clientes.forEach( x -> {
                 x.send( mensaje );
             });

@@ -14,7 +14,12 @@ class Pais extends Thread implements Serializable{
     private int poblacion;
     private int enfermos;
     private boolean continuar;
-    private int steps; // pasos que faltan para ir al tiempo
+    private int steps; // pasos que faltan para ir a tiempo
+
+    // cuantas veces se han agregado pasos
+    // funciona en cierta forma como un reloj, haciendo que
+    // sea facilmente comparable contra el del computador
+    private int maxStep;
 
     private Broker broker;
     private double posibilidad_viaje;
@@ -44,7 +49,11 @@ class Pais extends Thread implements Serializable{
         this.posibilidad_viaje_aereo = posibilidad_viaje_aereo;
         this.vecinos = vecinos;
         this.vecinos_aereos = vecinos_aereos;
-        ini(0);
+        this.maxStep = 0;
+        this.steps = 0;
+        this.continuar = true;
+        LOGGER = Utils.getLogger(this, this.nombre);
+        this.start();
     }
 
     Pais( PaisEnvio p, Broker broker )
@@ -57,28 +66,11 @@ class Pais extends Thread implements Serializable{
         this.posibilidad_viaje_aereo = p.getPosibilidad_viaje_aereo();
         this.vecinos = p.getVecinos();
         this.vecinos_aereos = p.getVecinos_aereos();
-        ini(p.getSteps());
-    }
-
-    Pais( Pais p, Broker broker )
-    {
-        this.broker = broker;
-        this.nombre = p.nombre;
-        this.poblacion = p.poblacion;
-        this.enfermos = p.enfermos;
-        this.posibilidad_viaje = p.posibilidad_viaje;
-        this.posibilidad_viaje_aereo = p.posibilidad_viaje_aereo;
-        this.vecinos = p.vecinos;
-        this.vecinos_aereos = p.vecinos_aereos;
-        ini(0);
-    }
-
-    private void ini(int steps)
-    {
-        this.steps = steps;
+        this.maxStep = p.getMaxStep();
+        this.steps = p.getSteps();
         this.continuar = true;
-        this.start();
         LOGGER = Utils.getLogger(this, this.nombre);
+        this.start();
     }
 
     public String prt()
@@ -88,90 +80,88 @@ class Pais extends Thread implements Serializable{
 
     public void run()
     {
+        LOGGER.log( Level.INFO, "iniciando : " + this.nombre + " con " + this.steps + " pasos");
         while(continuar)
         {
-            if(steps > 0)
-            {
-                LOGGER.log(Level.INFO, "pasa un dia : " + prt() + " quedan " + steps + " dias" );
-                infectar();
-                if( random(0,1) < posibilidad_viaje )
+            try{
+                if(steps > 0)
                 {
-                    viaje(this.vecinos);
+                    infectar();
+                    if( random(0,1) < posibilidad_viaje )
+                    {
+                        viaje(this.vecinos, "tierra");
+                    }
+                    if( random(0,1) < posibilidad_viaje_aereo )
+                    {
+                        viaje(this.vecinos_aereos, "aire");
+                    }
+                    this.steps--;
+                    LOGGER.log(Level.INFO, "pasa un dia : " + prt() + " quedan " + steps + " dias" );
+                    Utils.print( "pasa un dia : " + prt() + " quedan " + steps + " dias" );
                 }
-                if( random(0,1) < posibilidad_viaje_aereo )
-                {
-                    viaje(this.vecinos_aereos);
-                }
-                this.steps--;
-            }
-
-            try
-            {
-                TimeUnit.SECONDS.sleep(this.tiempo_descanso);
+                Thread.sleep(1000);
             }
             catch(InterruptedException ie)
             {
-                ie.printStackTrace();
+                continuar = false;
             }
         }
         LOGGER.log(Level.INFO, "detenido" );
     }
-
-
-    public void step(int pasos)
-    {
-        this.steps += pasos ;
-    }
-
-    // detiene la ejecucion del thread
     public void detener()
     {
-        // tal vez seria mejor usar Thread.stop(), aunque no se si eso
-        // tenga algun problema
         this.continuar = false;
     }
 
-    // probablemente no sea necesario tener un Thread continue,
-    // para eso ya esta la creacion de pais y start
+    public void step(int pasos)
+    {
+        LOGGER.log(Level.INFO, "agegando " + pasos + " pasos" );
+        this.steps += pasos ;
+        this.maxStep += pasos;
+    }
 
     // da un paso de tiempo
-    public void infectar(){
-        // despues puedo poner una formula mas interesante
-        int nuevos_enfermos = this.enfermos*this.enfermos;
+    public synchronized void infectar(){
+        // intentar simular una tasa de infeccion de 1.6
+        int nuevos_enfermos = this.enfermos + (int) (this.enfermos * 1.6);
+
         this.enfermos = nuevos_enfermos < this.poblacion ? nuevos_enfermos : this.poblacion ;
+        LOGGER.log(Level.INFO, "infectados a " + this.enfermos );
     }
 
     public void viajeroEntrante(Viajero v)
     {
-        LOGGER.log(Level.INFO, "persona llega de : " + v.getOrigen() );
-        agregarPoblacion();
-        if(v.enfermo())
-        {
-            agregarEnfermos();
-        }
+        agregarPoblacion(v.enfermo());
+        LOGGER.log(Level.INFO,  "entra viajero : " + v.prt() + " |  pais : " + prt() );
+        Utils.print( "entra viajero : " + v.prt() + " |  pais : " + prt() );
     }
 
-    private void viaje(String[] destinos)
+    private void viaje(String[] destinos, String metodo)
     {
         // viaje aleatorio a uno de los paises destino
 
         if ( destinos.length == 0 )
             return;
         String pais = destinos[ (int) random(0, destinos.length) ];
-        LOGGER.log(Level.INFO, "persona viaja a: " + pais );
+
+        boolean enfermo = this.enfermos > 0 ? random(0,1) < this.enfermos / this.poblacion : false;
+
+        Viajero v = new Viajero(
+            enfermo,
+            this.nombre,
+            pais,
+            metodo
+        );
+        LOGGER.log(Level.INFO, "nuevo viajero : " + v.prt() );
 
         this.broker.sendAware(
             pais,
             new Mensaje(
                 Mensaje.viajero,
-                new Viajero(
-                    this.enfermos > 0 ? random(0,1) < this.poblacion / this.enfermos : false,
-                    this.nombre,
-                    pais
-                )
+                v
             )
         );
-        reducirPoblacion();
+        reducirPoblacion(enfermo);
     }
 
     public int getPoblacion()
@@ -186,7 +176,7 @@ class Pais extends Thread implements Serializable{
 
     public String toString()
     {
-        return this.nombre + " : " + this.poblacion;
+        return this.nombre + " : " + this.enfermos + " / " + this.poblacion;
     }
 
     private synchronized void reducirEnfermos()
@@ -199,14 +189,22 @@ class Pais extends Thread implements Serializable{
         this.enfermos++;
     }
 
-    private synchronized void reducirPoblacion()
+    private synchronized void reducirPoblacion(boolean enfermo)
     {
         this.poblacion--;
+        if(enfermo)
+        {
+            reducirEnfermos();
+        }
     }
 
-    private synchronized void agregarPoblacion()
+    private synchronized void agregarPoblacion(boolean enfermo)
     {
         this.poblacion++;
+        if(enfermo)
+        {
+            agregarEnfermos();
+        }
     }
 
     private double random( int inferior, int superior )
@@ -245,5 +243,10 @@ class Pais extends Thread implements Serializable{
     public int getSteps()
     {
         return this.steps;
+    }
+
+    public int getMaxStep()
+    {
+        return this.maxStep;
     }
 }

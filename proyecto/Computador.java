@@ -18,12 +18,22 @@ public class Computador extends Conector{
     private List<Pais> paises;
     private Logger LOGGER;
 
+    // similar a un reloj, marca el maximo de steps que se pueden hacer
+    private int maxStep;
+    // al actualizarse, tambien actualiza los de los paises
+
     Computador(int port, int umbral)
     {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+                public void run() {
+                    detener();
+                }
+	    });
         this.paises = new ArrayList<Pais>();
 
         //                       yo que se como responder y por donde escucho
         this.broker = new Broker(this, port, umbral);
+        this.maxStep = 0;
         LOGGER = Utils.getLogger(this, this.broker.getNombre());
     }
 
@@ -38,11 +48,13 @@ public class Computador extends Conector{
             pesoTotal += p.getPoblacion();
         }
         LOGGER.log(Level.INFO,  prt + " ( total : " + pesoTotal + " )" );
+        Utils.print( prt + " ( total : " + pesoTotal + " )" );
     }
 
     // a mi me pasa el tiempo y le digo al resto que tambien lo pasen
     public void step(int pasos)
     {
+        // hay que ver una forma de agergar los pasos a nuevos paises, para que todos queden igual
         receiveStep(pasos);
         this.broker.send(
             new Mensaje(
@@ -52,18 +64,25 @@ public class Computador extends Conector{
         );
     }
 
-    public void stop()
+    public void detener()
     {
+        Utils.print("desconectando computador : " + this.broker.getNombre() );
+        LOGGER.log(Level.INFO, "desconectando computador : " + this.broker.getNombre() );
+
         this.paises.forEach( p -> {
             p.detener();
-            this.broker.sendRandomAdd(p);
+            this.broker.sendRandomAdd(new PaisEnvio(p));
         });
         this.broker.detener();
     }
 
     public synchronized void receiveStep(int pasos)
     {
+        LOGGER.log( Level.INFO, "se agregan " + pasos + " pasos");
+        this.maxStep += pasos;
         this.paises.forEach( p -> {
+
+            LOGGER.log( Level.INFO, "se agrega " + pasos + " pasos a " + p.getNombre());
             p.step(pasos);
         });
     }
@@ -98,7 +117,6 @@ public class Computador extends Conector{
     {
         try{
             InetAddress host = InetAddress.getByName(strcon);
-
             broker.agregar(
                 new Connection(
                     this,
@@ -138,19 +156,31 @@ public class Computador extends Conector{
     {
         if (p != null)
         {
+            int maxSteps = p.getMaxStep();
+            LOGGER.log( Level.INFO, "agregando pais : " + p.getNombre() + " con " + maxSteps + " <-> " + this.maxStep );
+            Utils.print( "agregando pais : " + p.getNombre() + " con " + maxSteps + " <-> " + this.maxStep );
+            if( maxSteps < this.maxStep )
+            {
+                int diferencia =  this.maxStep - p.getMaxStep();
+                LOGGER.log( Level.INFO, "actualizando " + p.getNombre() + " de " + maxSteps + " a " + diferencia + " pasos" );
+
+                p.step(diferencia);
+            }
             this.paises.add(p);
             imprimir();
         }
     }
 
-    private synchronized void eliminar(Pais p)
+    private synchronized boolean eliminar(Pais p)
     {
         if (this.paises.contains(p))
         {
-            p.detener();
+            p.interrupt();
             this.paises.remove(p);
             imprimir();
+            return true;
         }
+        return false;
     }
 
     @Override
@@ -160,10 +190,11 @@ public class Computador extends Conector{
         if (0 <= index && index < this.paises.size())
         {
             Pais pa = this.paises.get(index);
-            pa.detener();
-            pe = new PaisEnvio( pa );
-            eliminar( pa );
-            // Utils.print("moviendo " + pe.getNombre());
+            if (eliminar( pa ))
+            {
+                pe = new PaisEnvio( pa );
+                LOGGER.log( Level.INFO, "enviando pais : " + pe.getNombre() );
+            }
         }
         return pe;
     }
@@ -238,14 +269,15 @@ public class Computador extends Conector{
                 );
                 break;
 
-            case 6:
+            case 6: // steps
+
                 if ( respuesta.getContenido().getClass() == Integer.class )
                 {
                     receiveStep( (int) respuesta.getContenido() );
                 }
 
                 break;
-            case 7:
+            case 7: // llega viajero
 
                 if(  respuesta.getContenido().getClass() == Viajero.class )
                 {
@@ -256,13 +288,15 @@ public class Computador extends Conector{
 
                     this.paises.forEach( p -> {
 
-                        if(p.getNombre() == destino )
+                        String p_actual = p.getNombre();
+                        if( p_actual.equals(destino) )
                         {
+                            // LOGGER.log( Level.INFO, "agregando viajero : " + v.prt() );
+                            LOGGER.log( Level.INFO, "entra viajero : " + v.prt() );
+                            // Utils.print( "entra viajero : " + v.prt() );
                             p.viajeroEntrante(v);
                         }
                     });
-
-
                 }
 
                 break;
@@ -298,7 +332,7 @@ public class Computador extends Conector{
             Viajero v = (Viajero)mensaje.getContenido();
             for( Pais pais: this.paises )
             {
-                if (pais.getNombre() == receptor)
+                if (pais.getNombre().equals(receptor))
                 {
                     pais.viajeroEntrante(v);
                     return true;

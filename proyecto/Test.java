@@ -116,13 +116,13 @@ class Test{
             vecinos_aereos2
         );
 
+        // comp1.step(20); // esto lo voy a probar despues, que va a tocar cambiar unas cosas
         comp1.agregarConexion(local, c2);
-
         comp1.step(20);
 
         try
         {
-            TimeUnit.SECONDS.sleep(15);
+            TimeUnit.SECONDS.sleep(5);
         }
         catch(InterruptedException ie)
         {
@@ -131,6 +131,22 @@ class Test{
 
         comp1.imprimir();
         comp2.imprimir();
+
+        comp1.stop();
+
+
+        try
+        {
+            TimeUnit.SECONDS.sleep(20);
+        }
+        catch(InterruptedException ie)
+        {
+            ie.printStackTrace();
+        }
+
+        comp2.imprimir();
+
+        comp2.stop();
 
         // aqui deberian quedar
         // comp1 : total 5000
