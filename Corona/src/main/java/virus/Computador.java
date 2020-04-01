@@ -64,6 +64,7 @@ public class Computador extends Conector{
     public void step(int pasos)
     {
         // hay que ver una forma de agergar los pasos a nuevos paises, para que todos queden igual
+        Utils.print("agregando pasos : " + pasos );
         receiveStep(pasos);
         this.broker.send(
             new Mensaje(
@@ -90,7 +91,6 @@ public class Computador extends Conector{
         LOGGER.log( Level.INFO, "se agregan " + pasos + " pasos");
         this.maxStep += pasos;
         this.paises.forEach( p -> {
-
             LOGGER.log( Level.INFO, "se agrega " + pasos + " pasos a " + p.getNombre());
             p.step(pasos);
         });
@@ -145,6 +145,19 @@ public class Computador extends Conector{
             e.printStackTrace();
         }
     }
+
+    @Override
+    public void mensajeSaludo(Connection c)
+    {
+        this.broker.send(
+            c,
+            new Mensaje(
+                Mensaje.saludo,
+                this.maxStep
+            )
+        );
+    }
+
 
     @Override
     public int peso()
@@ -221,11 +234,30 @@ public class Computador extends Conector{
 
         switch(tipo)
         {
-            case 0: // simple
+            case 0: // saludo
+                // llega un mensaje para comparar 'tiempos'
 
-                // Utils.print("llego mensaje simple : ");
+                if ( respuesta.getContenido().getClass() == Integer.class )
+                {
+                    int stepsOtro = (int) respuesta.getContenido();
+                    Utils.print("nueva conexion recibida");
 
-                // texto simple que no importa, o algo asi
+                    if (this.maxStep < stepsOtro)
+                    {
+                        this.step(stepsOtro - this.maxStep);
+                    }
+                    else if( this.maxStep > stepsOtro )
+                    {
+                        this.broker.send(
+                            new Mensaje(
+                                Mensaje.step,
+                                this.maxStep - stepsOtro
+                            )
+                        );
+                    }
+                    // si son iguales all gud
+
+                }
 
                 break;
             case 1: // request

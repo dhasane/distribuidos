@@ -51,15 +51,21 @@ public class Connection extends Thread{
         try {
             while (continuar)
             {
-                Mensaje data = (Mensaje) in.readObject(); //Datos desde cliente
-                if ( this.esperandoRespuesta > 0 && data.getTipo() == Mensaje.respond )
+                // Mensaje data = (Mensaje) in.readObject(); //Datos desde cliente
+                Object obj = in.readObject(); //Datos desde cliente
+
+                if ( obj.getClass() == Mensaje.class )
                 {
-                    this.respuestas.add(data);
-                    this.esperandoRespuesta--;
-                }
-                else
-                {
-                    cnt.respond(this, data);
+                    Mensaje data = (Mensaje) obj;
+                    if ( this.esperandoRespuesta > 0 && data.getTipo() == Mensaje.respond )
+                    {
+                        this.respuestas.add(data);
+                        this.esperandoRespuesta--;
+                    }
+                    else
+                    {
+                        cnt.respond(this, data);
+                    }
                 }
             }
         } catch(ClassNotFoundException e){
@@ -125,6 +131,7 @@ public class Connection extends Thread{
     }
 
     // envia un mensaje y espera respuesta, es bloqueante
+    // esto probablemente se puede pasar a broker
     public Mensaje sendRespond( Mensaje mensaje )
     {
         Mensaje respuesta=null;

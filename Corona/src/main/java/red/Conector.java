@@ -23,4 +23,7 @@ public abstract class Conector {
 
     // verificar si el receptor esta en local, y si lo esta pasarle el mensaje
     abstract public boolean local(String receptor, Mensaje mensaje);
+
+    // enviar un primer mensaje a una nueva conexion
+    abstract public void mensajeSaludo(Connection c);
 }

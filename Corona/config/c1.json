@@ -1,0 +1,29 @@
+{
+    "puerto": 4321,
+    "umbral": 1000,
+    "pasos" : 30,
+    "conexiones": [
+        {
+            "dir": "127.0.0.1",
+            "port" : 5678
+        }
+    ],
+    "paises" : [
+        {
+            "nombre": "Colombia",
+            "poblacion" : "2000",
+            "enfermos": "3",
+            "alta_vulnerabilidad": "0.3",
+            "aislamiento": "0.2",
+            "posibilidad_viaje": "0.5",
+            "posibilidad_viaje_aereo": "0.2",
+            "vecinos": [
+                "Chile",
+                "Peru"
+            ],
+            "vecinos_aereos": [
+                "Peru"
+            ]
+        }
+    ]
+}

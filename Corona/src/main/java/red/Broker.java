@@ -207,6 +207,7 @@ public class Broker extends Thread{
         if( !this.clientes.contains(c) )
         {
             this.clientes.add(c);
+            cnt.mensajeSaludo(c);
             return true;
         }
         return false;

@@ -1,0 +1,43 @@
+{
+    "puerto": 5678,
+    "umbral": 1000,
+    "pasos" : 0,
+    "conexiones": [
+
+
+    ],
+    "paises" : [
+        {
+            "nombre": "Peru",
+            "poblacion" : "5000",
+            "enfermos": "0",
+            "alta_vulnerabilidad": "0.2",
+            "aislamiento": "0.1",
+            "posibilidad_viaje": "0.7",
+            "posibilidad_viaje_aereo": "0.4",
+            "vecinos": [
+                "Colombia",
+                "Chile"
+            ],
+            "vecinos_aereos": [
+                "Colombia"
+            ]
+        },
+        {
+            "nombre": "Chile",
+            "poblacion" : "3000",
+            "enfermos": "0",
+            "alta_vulnerabilidad": "0.6",
+            "aislamiento": "0.4",
+            "posibilidad_viaje": "0.9",
+            "posibilidad_viaje_aereo": "0.5",
+            "vecinos": [
+                "Colombia",
+                "Peru"
+            ],
+            "vecinos_aereos": [
+                "Colombia"
+            ]
+        }
+    ]
+}

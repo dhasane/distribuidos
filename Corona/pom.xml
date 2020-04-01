@@ -42,7 +42,7 @@
       <artifactId>exec-maven-plugin</artifactId>
       <version>1.4.0</version>
       <configuration>
-        <mainClass>virus.Test</mainClass>
+        <mainClass>virus.Init</mainClass>
       </configuration>
     </plugin>
 
