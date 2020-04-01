@@ -128,7 +128,7 @@ public class Broker extends Thread{
             // se le envia un "comando" y el objeto
             // algo asi como : "agregar", obj
             if (obj != null){
-                cliente.send(
+                enviar( cliente,
                     new Mensaje(
                         Mensaje.add,
                         obj
@@ -209,16 +209,6 @@ public class Broker extends Thread{
         return false;
     }
 
-    // envia a una conexion especifica
-    public void send(Connection c, String data)
-    {
-        c.send(
-            new Mensaje(
-                Mensaje.simple,
-                data
-            )
-        );
-    }
 
     public void sendAware( String receptor, Mensaje mensaje )
     {
@@ -226,13 +216,29 @@ public class Broker extends Thread{
         {
             LOGGER = Utils.getLogger(this, "enviando " + mensaje.getContenido() + " a otro computador" );
             this.clientes.forEach( x -> {
-                x.send( mensaje );
+                enviar( x, mensaje );
             });
         }
     }
 
+    // envia a una conexion especifica
     public void send(Connection c, Mensaje data)
     {
+        enviar(c, data);
+    }
+
+    private void enviar(Connection c, Mensaje data)
+    {
+        if (Mensaje.isRequest(data.getTipo()))
+        {
+            // agregar mensajes a los que se les espera request
+            // a una lista, para intentar reenviarlos
+            // casi mas bien, se podria lanzar un hilo, y
+            // cuando llegue la respuesta, se le pasa a Conector,
+            // para que este responda
+            // y no toca estar revisando si ya contestaron un mensaje
+            // en especifico
+        }
         c.send(data);
     }
 
@@ -244,7 +250,8 @@ public class Broker extends Thread{
 
         // de lo contrario lo envia a una conexion aleatoria, con el fin de no
         // perder el objeto al desconectar este Conector
-        this.clientes.get((int) random(0,this.clientes.size())).send(
+        enviar(
+            this.clientes.get((int) random(0,this.clientes.size())),
             new Mensaje(
                 Mensaje.add,
                 obj
@@ -256,7 +263,7 @@ public class Broker extends Thread{
     public void send(Mensaje data)
     {
         this.clientes.forEach( x -> {
-            x.send( data );
+            enviar(x,data);
         });
     }
 

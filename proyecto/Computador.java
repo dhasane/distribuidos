@@ -91,6 +91,8 @@ public class Computador extends Conector{
             String nombre,
             int poblacion,
             int enfermos_iniciales,
+            double alta_vulnerabilidad,
+            double aislamiento,
             double posibilidad_viaje,
             double posibilidad_viaje_aereo,
             String[] vecinos,
@@ -104,6 +106,8 @@ public class Computador extends Conector{
                 nombre,
                 poblacion,
                 enfermos_iniciales,
+                alta_vulnerabilidad,
+                aislamiento,
                 posibilidad_viaje,
                 posibilidad_viaje_aereo,
                 vecinos,
@@ -216,16 +220,11 @@ public class Computador extends Conector{
 
                 break;
             case 1: // request
-                Object obj = answerRequest(respuesta);
 
                 // se envia respond
-                broker.send(
-                    c,
-                    new Mensaje(
-                        Mensaje.respond,
-                        obj
-                    )
-                );
+
+                // idealmente 4,5,6 son requests, entonces deberian ser una
+                // subcategoria de esto
 
                 break;
             case 2: // respond
@@ -260,13 +259,7 @@ public class Computador extends Conector{
             case 5: // weight - piden el peso
 
                 // weight es un request, entonces responde
-                broker.send(
-                    c,
-                    new Mensaje(
-                        Mensaje.respond,
-                        this.peso()
-                    )
-                );
+                answerRequest(c, this.peso());
                 break;
 
             case 6: // steps
@@ -274,6 +267,7 @@ public class Computador extends Conector{
                 if ( respuesta.getContenido().getClass() == Integer.class )
                 {
                     receiveStep( (int) respuesta.getContenido() );
+                    answerRequest( c, Mensaje.agregado );
                 }
 
                 break;
@@ -295,6 +289,7 @@ public class Computador extends Conector{
                             LOGGER.log( Level.INFO, "entra viajero : " + v.prt() );
                             // Utils.print( "entra viajero : " + v.prt() );
                             p.viajeroEntrante(v);
+                            answerRequest( c, Mensaje.agregado );
                         }
                     });
                 }
@@ -303,12 +298,15 @@ public class Computador extends Conector{
         }
     }
 
-    public Object answerRequest(Mensaje request)
+    public void answerRequest(Connection c, Object obj)
     {
-        if (request.getContenido().getClass() == String.class)
-        {
-        }
-        return null;
+        broker.send(
+            c,
+            new Mensaje(
+                Mensaje.respond,
+                obj
+            )
+        );
     }
 
     @Override

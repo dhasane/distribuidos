@@ -21,11 +21,16 @@ class PaisEnvio implements Serializable{
     private String[] vecinos;
     private String[] vecinos_aereos;
 
+    private double alta_vulnerabilidad;
+    private double aislamiento;
+
     PaisEnvio( Pais p )
     {
         this.nombre = p.getNombre();
         this.poblacion = p.getPoblacion();
         this.enfermos = p.getEnfermos();
+        this.alta_vulnerabilidad = p.getAltaVulnerabilidad();
+        this.aislamiento = p.getAislamiento();
         this.posibilidad_viaje = p.getPosibilidad_viaje();
         this.posibilidad_viaje_aereo = p.getPosibilidad_viaje_aereo();
         this.vecinos = p.getVecinos();
@@ -77,5 +82,15 @@ class PaisEnvio implements Serializable{
     public int getMaxStep()
     {
         return this.maxStep;
+    }
+
+    public double getAislamiento()
+    {
+        return this.aislamiento;
+    }
+
+    public double getAltaVulnerabilidad()
+    {
+        return this.alta_vulnerabilidad;
     }
 }

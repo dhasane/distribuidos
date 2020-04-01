@@ -1,0 +1,33 @@
+2020-03-31 13:26:53 INFO    iniciando : peru con 0 pasos
+2020-03-31 13:26:54 INFO    agegando 20 pasos
+2020-03-31 13:26:55 INFO    infectados a 0
+2020-03-31 13:26:55 INFO    pasa un dia : peru : (0/5000) quedan 19 dias
+2020-03-31 13:26:56 INFO    infectados a 0
+2020-03-31 13:26:56 INFO    nuevo viajero : peru (tierra) -> colombia saludable
+2020-03-31 13:26:56 INFO    pasa un dia : peru : (0/4999) quedan 18 dias
+2020-03-31 13:26:57 INFO    infectados a 0
+2020-03-31 13:26:57 INFO    nuevo viajero : peru (tierra) -> colombia saludable
+2020-03-31 13:26:57 INFO    pasa un dia : peru : (0/4998) quedan 17 dias
+2020-03-31 13:26:58 INFO    infectados a 0
+2020-03-31 13:26:58 INFO    pasa un dia : peru : (0/4998) quedan 16 dias
+2020-03-31 13:26:59 INFO    entra viajero : colombia (tierra) -> peru saludable |  pais : peru : (0/4999)
+2020-03-31 13:26:59 INFO    infectados a 0
+2020-03-31 13:26:59 INFO    pasa un dia : peru : (0/4999) quedan 15 dias
+2020-03-31 13:27:00 INFO    infectados a 0
+2020-03-31 13:27:00 INFO    pasa un dia : peru : (0/4999) quedan 14 dias
+2020-03-31 13:27:01 INFO    infectados a 0
+2020-03-31 13:27:01 INFO    nuevo viajero : peru (tierra) -> colombia saludable
+2020-03-31 13:27:01 INFO    pasa un dia : peru : (0/4998) quedan 13 dias
+2020-03-31 13:27:02 INFO    infectados a 0
+2020-03-31 13:27:02 INFO    nuevo viajero : peru (tierra) -> colombia saludable
+2020-03-31 13:27:02 INFO    pasa un dia : peru : (0/4997) quedan 12 dias
+2020-03-31 13:27:03 INFO    infectados a 0
+2020-03-31 13:27:03 INFO    pasa un dia : peru : (0/4997) quedan 11 dias
+2020-03-31 13:27:04 INFO    infectados a 0
+2020-03-31 13:27:04 INFO    nuevo viajero : peru (tierra) -> colombia saludable
+2020-03-31 13:27:04 INFO    pasa un dia : peru : (0/4996) quedan 10 dias
+2020-03-31 13:27:05 INFO    infectados a 0
+2020-03-31 13:27:05 INFO    nuevo viajero : peru (tierra) -> colombia saludable
+2020-03-31 13:27:05 INFO    pasa un dia : peru : (0/4995) quedan 9 dias
+2020-03-31 13:27:06 INFO    infectados a 0
+2020-03-31 13:27:06 INFO    pasa un dia : peru : (0/4995) quedan 8 dias

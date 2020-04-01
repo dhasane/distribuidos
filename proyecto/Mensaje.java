@@ -14,6 +14,8 @@ class Mensaje implements Serializable{
 
     public static int viajero = 7; // es mas facil declararlas por aca ....
 
+    public static String agregado = "valor agregado";
+
 
     private int tipo;
     private Object contenido;
@@ -22,6 +24,13 @@ class Mensaje implements Serializable{
     {
         this.tipo = tipo;
         this.contenido = contenido;
+    }
+
+    public static boolean isRequest(int tipo)
+    {
+        // esto esta un asco, pero planeo ne cualquier caso
+        // despues arreglarlo para no tener que hacer esto
+        return tipo==4 || tipo==5|| tipo==6|| tipo==7;
     }
 
     Object getContenido()

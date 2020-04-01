@@ -29,12 +29,18 @@ class Pais extends Thread implements Serializable{
     private String[] vecinos_aereos;
 
     private int tiempo_descanso = 1;
+// Para cada país:
+    // y el porcentaje de aislamiento de las personas.
+    private double alta_vulnerabilidad;
+    private double aislamiento;
 
     Pais(
             Broker broker,
             String nombre,
             int poblacion,
             int enfermos,
+            double alta_vulnerabilidad,
+            double aislamiento,
             double posibilidad_viaje,
             double posibilidad_viaje_aereo,
             String[] vecinos,
@@ -45,6 +51,8 @@ class Pais extends Thread implements Serializable{
         this.nombre = nombre;
         this.poblacion = poblacion;
         this.enfermos = enfermos;
+        this.alta_vulnerabilidad = alta_vulnerabilidad;
+        this.aislamiento = aislamiento;
         this.posibilidad_viaje = posibilidad_viaje;
         this.posibilidad_viaje_aereo = posibilidad_viaje_aereo;
         this.vecinos = vecinos;
@@ -62,6 +70,8 @@ class Pais extends Thread implements Serializable{
         this.nombre = p.getNombre();
         this.poblacion = p.getPoblacion();
         this.enfermos = p.getEnfermos();
+        this.alta_vulnerabilidad = p.getAltaVulnerabilidad();
+        this.aislamiento = p.getAislamiento();
         this.posibilidad_viaje = p.getPosibilidad_viaje();
         this.posibilidad_viaje_aereo = p.getPosibilidad_viaje_aereo();
         this.vecinos = p.getVecinos();
@@ -113,7 +123,7 @@ class Pais extends Thread implements Serializable{
         this.continuar = false;
     }
 
-    public void step(int pasos)
+    public synchronized void step(int pasos)
     {
         LOGGER.log(Level.INFO, "agegando " + pasos + " pasos" );
         this.steps += pasos ;
@@ -123,7 +133,12 @@ class Pais extends Thread implements Serializable{
     // da un paso de tiempo
     public synchronized void infectar(){
         // intentar simular una tasa de infeccion de 1.6
-        int nuevos_enfermos = this.enfermos + (int) (this.enfermos * 1.6);
+        // int nuevos_enfermos = this.enfermos + (int) (this.enfermos * 1.6);
+        int nuevos_enfermos = (int) (this.enfermos * 1.6);
+        nuevos_enfermos *= this.alta_vulnerabilidad;
+        nuevos_enfermos -= nuevos_enfermos * this.aislamiento;
+
+        if (nuevos_enfermos < 0 ) nuevos_enfermos = 0;
 
         this.enfermos = nuevos_enfermos < this.poblacion ? nuevos_enfermos : this.poblacion ;
         LOGGER.log(Level.INFO, "infectados a " + this.enfermos );
@@ -248,5 +263,15 @@ class Pais extends Thread implements Serializable{
     public int getMaxStep()
     {
         return this.maxStep;
+    }
+
+    public double getAislamiento()
+    {
+        return this.aislamiento;
+    }
+
+    public double getAltaVulnerabilidad()
+    {
+        return this.alta_vulnerabilidad;
     }
 }

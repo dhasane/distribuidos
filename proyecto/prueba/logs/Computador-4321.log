@@ -1,0 +1,14 @@
+2020-03-31 13:26:53 INFO    agregando pais colombia
+2020-03-31 13:26:53 INFO    agregando pais : colombia con 0 <-> 0
+2020-03-31 13:26:53 INFO    4321 -> colombia : 3 / 2000,  ( total : 2000 )
+2020-03-31 13:26:54 INFO    se agregan 20 pasos
+2020-03-31 13:26:54 INFO    se agrega 20 pasos a colombia
+2020-03-31 13:26:54 INFO    mensaje entrante: 2:valor agregado
+2020-03-31 13:26:56 INFO    mensaje entrante: 1:4:Viajero@3e367955
+2020-03-31 13:26:56 INFO    entra viajero : peru (tierra) -> colombia saludable
+2020-03-31 13:26:57 INFO    mensaje entrante: 1:4:Viajero@22cfb223
+2020-03-31 13:26:57 INFO    entra viajero : peru (tierra) -> colombia saludable
+2020-03-31 13:26:59 INFO    mensaje entrante: 2:valor agregado
+2020-03-31 13:26:59 INFO    4321 -> colombia : 309 / 2001,  ( total : 2001 )
+2020-03-31 13:26:59 INFO    desconectando computador : 4321
+2020-03-31 13:27:06 INFO    desconectando computador : 4321
