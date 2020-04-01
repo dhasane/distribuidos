@@ -173,6 +173,7 @@ public class Computador extends Conector{
     @Override
     public List<Integer> pesoObjetos()
     {
+        // TODO se podria en el peso tambien contar comunicaciones
         return this.paises.stream()
                           .map( p -> p.getPoblacion() )
                           .collect(Collectors.toList());

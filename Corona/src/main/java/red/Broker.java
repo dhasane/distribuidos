@@ -95,7 +95,6 @@ public class Broker extends Thread{
 
         int diferencia = (miPeso - peso)/2;
 
-        // Utils.print("la diferencia es " + diferencia );
         if ( abs(diferencia) >= this.umbral )
         {
             // tu que tienes un peso suficientemente distinto al mio(dentro de un umbral), te paso una de mis clases que te acerque lo mejor posible al promedio entre tu peso y mi peso
@@ -107,13 +106,13 @@ public class Broker extends Thread{
             int poblacion;
 
             int posicion = 0;
+            // TODO esto se podria, en vez de buscar solo uno, buscar todos
+            // los objetos que se necesiten para quedar balanceados
+            // aunque eso ya seria mas como con programacion dinamica, o algo asi
             for(Integer pais: pesos)
             {
                 poblacion = diferencia - pais;
 
-                // Utils.print( getNombre() + " cambio seria :" + diferencia + " -> " + poblacion + "   umbral : " + umbral);
-
-                // -umbral < poblacion < umbral y que sea el minimo posible
                 if( abs(poblacion) <= umbral && ( index == -1 || pais < paisMinimo) )
                 {
                     paisMinimo = pais;
@@ -122,14 +121,7 @@ public class Broker extends Thread{
                 posicion++;
             }
 
-            // Utils.print("se selecciono el index : " + index);
-
             Object obj = cnt.getObject(index);
-
-
-            // Utils.print( this.getNombre() + " el objeto que voy a enviar es :" + obj);
-            // se le envia un "comando" y el objeto
-            // algo asi como : "agregar", obj
             if (obj != null){
                 enviar( cliente,
                     new Mensaje(
@@ -137,7 +129,6 @@ public class Broker extends Thread{
                         obj
                     )
                 );
-
                 // si ya le pase o recibi una clase, no tengo que preguntarle al resto
                 return true;
             }
@@ -170,9 +161,7 @@ public class Broker extends Thread{
                 this.listenSocket.close();
             }
             catch(IOException e)
-            {
-                e.printStackTrace();
-            }
+            {}
 
             LOGGER.log(Level.INFO, "cerrando puerto : " + this.getNombre() );
             this.clientes.forEach(c->c.detener());
@@ -203,7 +192,7 @@ public class Broker extends Thread{
 
     public synchronized boolean agregar(Connection c)
     {
-        // no pueden haber repetidos
+        // no pueden haber repetidos, no tendria sentido
         if( !this.clientes.contains(c) )
         {
             this.clientes.add(c);
@@ -212,7 +201,6 @@ public class Broker extends Thread{
         }
         return false;
     }
-
 
     public void sendAware( String receptor, Mensaje mensaje )
     {

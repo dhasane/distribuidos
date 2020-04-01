@@ -140,19 +140,13 @@ public class Pais extends Thread implements Serializable{
         // intentar simular una tasa de infeccion de 1.6
         // int nuevos_enfermos = this.enfermos + (int) (this.enfermos * 1.6);
 
-        String modificacion = "";
         int nuevos_enfermos = (int) (this.enfermos * 1.6);
-        modificacion += nuevos_enfermos + " :: ";
         nuevos_enfermos += nuevos_enfermos * this.alta_vulnerabilidad;
-        modificacion += this.alta_vulnerabilidad + " ->" + nuevos_enfermos + " :: " + nuevos_enfermos + " - " + nuevos_enfermos*this.aislamiento + " -> ";
         nuevos_enfermos -= nuevos_enfermos * this.aislamiento;
-        modificacion += nuevos_enfermos + " :: ";
 
         if (nuevos_enfermos < 0 ) nuevos_enfermos = 0;
 
         this.enfermos = nuevos_enfermos < this.poblacion ? this.enfermos + nuevos_enfermos : this.poblacion ;
-        modificacion += this.enfermos + " :: ";
-        LOGGER.log(Level.INFO, "infectados a " + modificacion );
     }
 
     public void viajeroEntrante(Viajero v)
