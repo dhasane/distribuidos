@@ -243,12 +243,15 @@ public class Computador extends Conector{
         }
         else if(respuesta.isRequest())
         {
+            double tipo = Mensaje.noAgregado;
+            Object contenido = null;
             switch(respuesta.getSubType())
             {
                 case 1: // add
 
                     if (respuesta.getContenido().getClass() == PaisEnvio.class)
                     {
+                        tipo = Mensaje.agregado;
                         agregar(
                             new Pais((PaisEnvio)respuesta.getContenido(), this.broker)
                         );
@@ -258,7 +261,9 @@ public class Computador extends Conector{
                 case 2: // weight - piden el peso
 
                     // weight es un request, entonces responde
-                    answerRequest(c, this.peso());
+                    // answerRequest(c, this.peso());
+                    tipo = Mensaje.respond;
+                    contenido = this.peso();
                     break;
 
                 case 3: // steps
@@ -266,6 +271,7 @@ public class Computador extends Conector{
                     if ( respuesta.getContenido().getClass() == Integer.class )
                     {
                         receiveStep( (int) respuesta.getContenido() );
+                        tipo = Mensaje.agregado;
                     }
 
                     break;
@@ -275,55 +281,40 @@ public class Computador extends Conector{
                     {
                         Viajero v = (Viajero) respuesta.getContenido();
                         String destino = v.getDestino();
-
                         for( Pais p : this.paises)
                         {
-
                             String p_actual = p.getNombre();
                             if( p_actual.equals(destino) )
                             {
                                 LOGGER.log( Level.INFO, "entra viajero : " + v.prt() );
                                 p.viajeroEntrante(v);
+                                tipo = Mensaje.agregado;
                             }
                         }
                     }
                     break;
             }
 
-            // broker.send(
-            //     c,
-            //     new Mensaje(
-            //         tipoRepl,
-            //         respuesta.getId(),
-            //         repl
-            //     )
-            // );
+            broker.send(
+                c,
+                new Mensaje(
+                    tipo,
+                    contenido
+                )
+            );
         }
         else if(respuesta.isRespond())
         {
-            Utils.print("lega objetoooooooooo " + respuesta.toString());
-            // en teoria es para contestar un request
-            // pero para esto ya hay una funcion que atrapa directamente
-            // el respond
+            // esto aca no es realmente necesario, este tipo de mensaje es
+            // mas para evitar reenviar mensajes
+
+            // Utils.print("lega objetoooooooooo " + respuesta.toString());
 
             // en teoria aca se deberia enviar un accept
-
-            // el problema es que los accept por el momento no hacen nada
-            // porque no hay algo asi como una "cola" de envios previos
+            // pero no los estoy manejando
         }
 
         // por el momento no se usan accept
-    }
-
-    public void answerRequest(Connection c, Object obj)
-    {
-        broker.send(
-            c,
-            new Mensaje(
-                Mensaje.respond,
-                obj
-            )
-        );
     }
 
     @Override
