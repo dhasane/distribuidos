@@ -6,7 +6,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.HashMap;
@@ -23,10 +25,17 @@ public class Broker extends Thread{
 
     private boolean continuar;
 
+    private Map<Integer , Mensaje> respuestas;
+
+    private int tiempoDescanso = 1500; // segundo y medio
+
+    private int id_mensaje;
+
     public Broker(Conector cnt, int serverPort, int umbral)
     {
         try
         {
+            this.respuestas = new HashMap<Integer, Mensaje>();
             this.listenSocket = new ServerSocket(serverPort); //Inicializar socket con el puerto
             this.clientes = new ArrayList<Connection>();
             this.cnt = cnt;
@@ -34,6 +43,7 @@ public class Broker extends Thread{
             this.continuar = true;
             // escucharConexionesEntrantes();
             this.start();
+            this.id_mensaje = Integer.MIN_VALUE;
             LOGGER = Utils.getLogger(this, this.getNombre());
         }
         catch(IOException ioe )
@@ -45,6 +55,23 @@ public class Broker extends Thread{
     public String getNombre()
     {
         return this.listenSocket.getLocalPort() + "";
+    }
+
+
+    public Mensaje createMensaje(double tipo, Object contenido)
+    {
+        Mensaje m = new Mensaje(
+            tipo,
+            id_mensaje,
+            contenido
+        );
+        id_mensaje ++;
+        // espero que esto no se pase ....
+        // if ( id_mensaje == Integer.MAX_VALUE )
+        // {
+        //     id_mensaje = Integer.MIN_VALUE;
+        // }
+        return m;
     }
 
 
@@ -67,12 +94,26 @@ public class Broker extends Thread{
             {
 
                 // esta funcion seria para enviar un mensaje y esperar su respuesta
-                respuesta = cliente.sendRespond(
-                        new Mensaje(
-                            Mensaje.weight,
-                            "oiga su peso" // el contenido no importa
-                        )
+                Mensaje m = createMensaje(
+                        Mensaje.weight,
+                        "oiga su peso" // el contenido no importa
+                    );
+                cliente.send(
+                    m
                 );
+                while( this.respuestas.get(m.getId()) == null ){
+                    try
+                    {
+                        TimeUnit.SECONDS.sleep(2);
+                    }
+                    catch(InterruptedException ie)
+                    {
+                        ie.printStackTrace();
+                    }
+                }
+
+                respuesta = this.respuestas.get(m.getId());
+                respuestasEliminar(respuesta);
 
                 // que no este vacio y que el contenido sea int
                 if ( respuesta != null && respuesta.getContenido().getClass() == Integer.class )
@@ -86,6 +127,19 @@ public class Broker extends Thread{
                 if (terminar) break;
             }
         }while(continuarBalanceo);
+    }
+
+    public synchronized void respuestasEliminar(Mensaje msg)
+    {
+        this.respuestas.remove(msg);
+    }
+
+    public synchronized void respuestasAgregar(int key, Mensaje msg)
+    {
+        this.respuestas.put(
+            key,
+            msg
+        );
     }
 
     // saca el valor absoluto
@@ -127,7 +181,7 @@ public class Broker extends Thread{
             Object obj = cnt.getObject(index);
             if (obj != null){
                 enviar( cliente,
-                    new Mensaje(
+                    createMensaje(
                         Mensaje.add,
                         obj
                     )
@@ -225,13 +279,19 @@ public class Broker extends Thread{
 
     public void sendAware( String receptor, Mensaje mensaje )
     {
-        if( !cnt.local(receptor, mensaje) )
-        {
-            LOGGER = Utils.getLogger(this, "enviando " + mensaje.getContenido() + " a otro computador" );
-            this.clientes.forEach( x -> {
-                enviar( x, mensaje );
-            });
-        }
+        boolean entregado = false;
+        do{
+
+            if( !cnt.local(receptor, mensaje) )
+            {
+                LOGGER = Utils.getLogger(this, "enviando " + mensaje.getContenido() + " a otro computador" );
+                for( Connection c: this.clientes )
+                {
+                    entregado |= enviar( c, mensaje );
+                }
+            }
+
+        } while( !entregado );
     }
 
     // envia a una conexion especifica
@@ -240,10 +300,56 @@ public class Broker extends Thread{
         enviar(c, data);
     }
 
-    private void enviar(Connection c, Mensaje data)
+    private boolean enviar(Connection c, Mensaje data)
     {
+        boolean exitoso = true;
         if (data.isRequest())
         {
+            int intentos = 5;
+            do{
+                Utils.print("se envia request : " + data.toString());
+                c.send(data);
+                intentos --;
+                try
+                {
+                    TimeUnit.SECONDS.sleep(1);
+                }
+                catch(InterruptedException ie)
+                {
+                    ie.printStackTrace();
+                }
+            }while(
+                    this.respuestas.get(data.getId()) != null
+                    && this.clientes.contains(c)
+                    && intentos >= 0
+                );
+
+            if ( this.respuestas.get(data.getId()) != null )
+            {
+                Mensaje msg = this.respuestas.get(data.getId());
+
+                if (msg.isRequest())
+                {
+                    cnt.respond(c, msg);
+                }
+
+                switch(msg.getSubType())
+                {
+                    case 1: // agregado
+                        exitoso = true;
+                        break;
+                    case 2:
+                        exitoso = false;
+                        break;
+                }
+
+                // si es info, va a ser usada en algo, entonces no borrarla
+                if (msg.isRespond() && msg.getSubType() != Mensaje.info )
+                {
+                    respuestasEliminar(msg);
+                }
+            }
+
             // agregar mensajes a los que se les espera request
             // a una lista, para intentar reenviarlos
             // casi mas bien, se podria lanzar un hilo, y
@@ -252,7 +358,11 @@ public class Broker extends Thread{
             // y no toca estar revisando si ya contestaron un mensaje
             // en especifico
         }
-        c.send(data);
+        else
+        {
+            c.send(data);
+        }
+        return exitoso;
     }
 
     public void sendRandomAdd(Object obj)
@@ -265,7 +375,7 @@ public class Broker extends Thread{
         // perder el objeto al desconectar este Conector
         enviar(
             this.clientes.get((int) random(0,this.clientes.size())),
-            new Mensaje(
+            createMensaje(
                 Mensaje.add,
                 obj
             )
@@ -274,18 +384,18 @@ public class Broker extends Thread{
 
     public void respond(Connection c, Mensaje data)
     {
-        // por el momento es igual, pero esto me permite buscar reply
-        // if ( data.isRespond() )
-        // {
-        //     Utils.print(" llega respuesta : " + data.toString() );
-        //     this.respuestas.put(
-        //         data.getId(),
-        //         data.getContenido()
-        //     );
-        // }
-        // else
+        // pero esto me permite buscar reply
+
+        if( this.respuestas.getOrDefault(data.getId(), null) == null )
         {
-            Utils.print("llega mensaje " + data.toString());
+            if ( data.isRespond() )
+            {
+                Utils.print(" llega respuesta : " + data.toString() );
+                respuestasAgregar(
+                    data.getId(),
+                    data
+                );
+            }
             cnt.respond(c, data);
         }
     }

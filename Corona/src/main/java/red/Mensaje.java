@@ -24,34 +24,23 @@ public class Mensaje implements Serializable{
     public static double viajero = 1.4; // es mas facil declararlas por aca ....
 
     // reply
-    public static double agregado = 2.1;
-    public static double noAgregado = 2.2;
+    public static double agregado   = 2.1; // respondio, ah listo
+    public static double noAgregado = 2.2; // no lo agrego, bueno
+    public static double info       = 2.3; // informacion utilizable
 
     private double tipo;
     private Object contenido;
 
-    private String id;
+    private int id;
 
-    static DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
-
-
-    public Mensaje(double tipo, Object contenido)
-    {
-        // usar la fecha como id
-        this.id = LocalDateTime.now().format(formatter);
-
-        this.tipo = tipo;
-        this.contenido = contenido;
-    }
-
-    public Mensaje(double tipo, String id, Object contenido)
+    public Mensaje(double tipo, int id, Object contenido)
     {
         this.id = id;
         this.tipo = tipo;
         this.contenido = contenido;
     }
 
-    public String getId()
+    public int getId()
     {
         return this.id;
     }

@@ -3,6 +3,8 @@ import java.io.Serializable;
 
 public class Viajero implements Serializable{
 
+    private static final long serialVersionUID = 129323939L;
+
     private boolean enfermo;
     private String origen;
     private String destino;

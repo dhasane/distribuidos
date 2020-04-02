@@ -176,7 +176,7 @@ public class Pais extends Thread implements Serializable{
 
         this.broker.sendAware(
             pais,
-            new Mensaje(
+            this.broker.createMensaje(
                 Mensaje.viajero,
                 v
             )

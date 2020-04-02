@@ -67,7 +67,7 @@ public class Computador extends Conector{
         Utils.print("agregando pasos : " + pasos );
         receiveStep(pasos);
         this.broker.send(
-            new Mensaje(
+            this.broker.createMensaje(
                 Mensaje.step,
                 pasos
             )
@@ -137,7 +137,7 @@ public class Computador extends Conector{
     {
         this.broker.send(
             c,
-            new Mensaje(
+            this.broker.createMensaje(
                 Mensaje.saludo,
                 this.maxStep
             )
@@ -231,7 +231,7 @@ public class Computador extends Conector{
                 else if( this.maxStep > stepsOtro )
                 {
                     this.broker.send(
-                            new Mensaje(
+                            this.broker.createMensaje(
                                 Mensaje.step,
                                 this.maxStep - stepsOtro
                             )
@@ -262,7 +262,7 @@ public class Computador extends Conector{
 
                     // weight es un request, entonces responde
                     // answerRequest(c, this.peso());
-                    tipo = Mensaje.respond;
+                    tipo = Mensaje.info;
                     contenido = this.peso();
                     break;
 
@@ -297,7 +297,7 @@ public class Computador extends Conector{
 
             broker.send(
                 c,
-                new Mensaje(
+                this.broker.createMensaje(
                     tipo,
                     contenido
                 )

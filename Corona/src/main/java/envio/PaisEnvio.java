@@ -10,6 +10,8 @@ import virus.*;
 
 public class PaisEnvio implements Serializable{
 
+    private static final long serialVersionUID = 129329749L;
+
     private String nombre;
     private int poblacion;
     private int enfermos;

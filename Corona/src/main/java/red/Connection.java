@@ -58,15 +58,7 @@ public class Connection extends Thread{
                 if ( obj.getClass() == Mensaje.class )
                 {
                     Mensaje data = (Mensaje) obj;
-                    if ( this.esperandoRespuesta > 0 && data.getTipo() == Mensaje.respond )
-                    {
-                        this.respuestas.add(data);
-                        this.esperandoRespuesta--;
-                    }
-                    else
-                    {
-                        bro.respond(this, data);
-                    }
+                    bro.respond(this, data);
                 }
             }
         } catch(ClassNotFoundException e){
@@ -105,62 +97,16 @@ public class Connection extends Thread{
     {
         boolean sent = false;
         int intentos = cantidad_reintentos ;
-        do{
-            try{
-                out.writeObject(data);
-                sent = true;
-            } catch(IOException e){
-                if (intentos == 0)
-                    return sent;
-                intentos --;
-
-                System.out.println("readline:"+e.getMessage());
-                e.printStackTrace();
-                try{
-                    // esperar y reenviar
-                    TimeUnit.SECONDS.sleep(this.tiempo_reintento);
-                }
-                catch(InterruptedException ie ){
-                    ie.printStackTrace();
-                }
-            }
-            // se le podria agregar tambien para que espere una respuesta
-            // o algo asi como cnt.sent(), para que esa sea la clase que elija como responder
-            // o agregar una lista de identificadores de lo que se ha enviado, y que en escuchar(run) reciba cierto 'comando' para decir 'listo el receptor recibio el mensaje'
-        }while(!sent);
-        return sent;
-    }
-
-    // envia un mensaje y espera respuesta, es bloqueante
-    // esto probablemente se puede pasar a broker
-    public Mensaje sendRespond( Mensaje mensaje )
-    {
-        Mensaje respuesta=null;
-        send(mensaje);
-
-        int respInicial = this.esperandoRespuesta;
-
-        this.esperandoRespuesta ++;
-
-        // aqui busca la respuesta que espera por id o algo asi
-        while( respInicial < esperandoRespuesta ){
-            try
-            {
-                // por alguna razon tiene que haber aqui una pausa
-                // que si no, como que no sirve....
-                TimeUnit.SECONDS.sleep(1);
-            }
-            catch(InterruptedException ie)
-            {
-                ie.printStackTrace();
-            }
+        try{
+            out.writeObject(data);
+            sent = true;
+        } catch(IOException e){
+            System.out.println("readline:"+e.getMessage());
+            e.printStackTrace();
         }
-
-        // esto puede que de un error por el orden,
-        // pero por el momento lo voy a dejar asi :v
-        respuesta = this.respuestas.get(0);
-        this.respuestas.remove(0);
-
-        return respuesta;
+        // se le podria agregar tambien para que espere una respuesta
+        // o algo asi como cnt.sent(), para que esa sea la clase que elija como responder
+        // o agregar una lista de identificadores de lo que se ha enviado, y que en escuchar(run) reciba cierto 'comando' para decir 'listo el receptor recibio el mensaje'
+        return sent;
     }
 }
