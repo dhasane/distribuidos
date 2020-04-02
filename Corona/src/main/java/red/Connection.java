@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -61,6 +62,8 @@ public class Connection extends Thread{
                     bro.respond(this, data);
                 }
             }
+        } catch(SocketException e){
+            Utils.print("conexion cerrada");
         } catch(ClassNotFoundException e){
             e.printStackTrace();
         } catch(EOFException e){
@@ -100,6 +103,8 @@ public class Connection extends Thread{
         try{
             out.writeObject(data);
             sent = true;
+        } catch(SocketException e){
+            Utils.print("conexion cerrada");
         } catch(IOException e){
             System.out.println("readline:"+e.getMessage());
             e.printStackTrace();

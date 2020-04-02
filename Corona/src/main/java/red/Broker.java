@@ -101,7 +101,7 @@ public class Broker extends Thread{
                 cliente.send(
                     m
                 );
-                while( this.respuestas.get(m.getId()) == null ){
+                while( this.respuestas.getOrDefault(m.getId(), null) == null ){
                     try
                     {
                         TimeUnit.SECONDS.sleep(2);
@@ -319,12 +319,13 @@ public class Broker extends Thread{
                     ie.printStackTrace();
                 }
             }while(
-                    this.respuestas.get(data.getId()) != null
+                    // respuesta no este vacia, si se tenga al cliente y aun queden intentos
+                    this.respuestas.getOrDefault(data.getId(), null) != null
                     && this.clientes.contains(c)
                     && intentos >= 0
                 );
 
-            if ( this.respuestas.get(data.getId()) != null )
+            if ( this.respuestas.getOrDefault(data.getId(), null) != null )
             {
                 Mensaje msg = this.respuestas.get(data.getId());
 
