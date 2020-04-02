@@ -242,7 +242,7 @@ public class Broker extends Thread{
 
     private void enviar(Connection c, Mensaje data)
     {
-        if (Mensaje.isRequest(data.getTipo()))
+        if (data.isRequest())
         {
             // agregar mensajes a los que se les espera request
             // a una lista, para intentar reenviarlos

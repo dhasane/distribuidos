@@ -217,113 +217,102 @@ public class Computador extends Conector{
     {
         LOGGER.log( Level.INFO, "mensaje entrante: " + respuesta.toString() );
 
-        int tipo = respuesta.getTipo();
-
-        switch(tipo)
+        if (respuesta.isSaludo())
         {
-            case 0: // saludo
-                // llega un mensaje para comparar 'tiempos'
+            if ( respuesta.getContenido().getClass() == Integer.class )
+            {
+                int stepsOtro = (int) respuesta.getContenido();
+                Utils.print("nueva conexion recibida");
 
-                if ( respuesta.getContenido().getClass() == Integer.class )
+                if (this.maxStep < stepsOtro)
                 {
-                    int stepsOtro = (int) respuesta.getContenido();
-                    Utils.print("nueva conexion recibida");
-
-                    if (this.maxStep < stepsOtro)
-                    {
-                        this.step(stepsOtro - this.maxStep);
-                    }
-                    else if( this.maxStep > stepsOtro )
-                    {
-                        this.broker.send(
+                    this.step(stepsOtro - this.maxStep);
+                }
+                else if( this.maxStep > stepsOtro )
+                {
+                    this.broker.send(
                             new Mensaje(
                                 Mensaje.step,
                                 this.maxStep - stepsOtro
                             )
-                        );
-                    }
-                    // si son iguales all gud
-
-                }
-
-                break;
-            case 1: // request
-
-                // se envia respond
-
-                // idealmente 4,5,6 son requests, entonces deberian ser una
-                // subcategoria de esto
-
-                break;
-            case 2: // respond
-
-                // en teoria es para contestar un request
-                // pero para esto ya hay una funcion que atrapa directamente
-                // el respond
-
-                // en teoria aca se deberia enviar un accept
-
-                // el problema es que los accept por el momento no hacen nada
-                // porque no hay algo asi como una "cola" de envios previos
-
-                break;
-            case 3: // accept
-
-                // si se recibe no se reenvia lo anterior
-
-                break;
-            case 4: // add
-
-                if (respuesta.getContenido().getClass() == PaisEnvio.class)
-                {
-                    agregar(
-                        new Pais((PaisEnvio)respuesta.getContenido(), this.broker)
                     );
                 }
+                // si son iguales all gud
 
-                // en teoria aca se deberia enviar un accept
-
-                break;
-            case 5: // weight - piden el peso
-
-                // weight es un request, entonces responde
-                answerRequest(c, this.peso());
-                break;
-
-            case 6: // steps
-
-                if ( respuesta.getContenido().getClass() == Integer.class )
-                {
-                    receiveStep( (int) respuesta.getContenido() );
-                    answerRequest( c, Mensaje.agregado );
-                }
-
-                break;
-            case 7: // llega viajero
-
-                if(  respuesta.getContenido().getClass() == Viajero.class )
-                {
-
-                    Viajero v = (Viajero) respuesta.getContenido();
-                    // conseguir destino de viajero
-                    String destino = v.getDestino();
-
-                    this.paises.forEach( p -> {
-
-                        String p_actual = p.getNombre();
-                        if( p_actual.equals(destino) )
-                        {
-                            // LOGGER.log( Level.INFO, "agregando viajero : " + v.prt() );
-                            LOGGER.log( Level.INFO, "entra viajero : " + v.prt() );
-                            // Utils.print( "entra viajero : " + v.prt() );
-                            p.viajeroEntrante(v);
-                            answerRequest( c, Mensaje.agregado );
-                        }
-                    });
-                }
-
-                break;
+            }
         }
+        else if(respuesta.isRequest())
+        {
+            switch(respuesta.getSubType())
+            {
+                case 1: // add
+
+                    if (respuesta.getContenido().getClass() == PaisEnvio.class)
+                    {
+                        agregar(
+                            new Pais((PaisEnvio)respuesta.getContenido(), this.broker)
+                        );
+                    }
+
+                    break;
+                case 2: // weight - piden el peso
+
+                    // weight es un request, entonces responde
+                    answerRequest(c, this.peso());
+                    break;
+
+                case 3: // steps
+
+                    if ( respuesta.getContenido().getClass() == Integer.class )
+                    {
+                        receiveStep( (int) respuesta.getContenido() );
+                    }
+
+                    break;
+                case 4: // llega viajero
+
+                    if(  respuesta.getContenido().getClass() == Viajero.class )
+                    {
+                        Viajero v = (Viajero) respuesta.getContenido();
+                        String destino = v.getDestino();
+
+                        for( Pais p : this.paises)
+                        {
+
+                            String p_actual = p.getNombre();
+                            if( p_actual.equals(destino) )
+                            {
+                                LOGGER.log( Level.INFO, "entra viajero : " + v.prt() );
+                                p.viajeroEntrante(v);
+                            }
+                        }
+                    }
+                    break;
+            }
+
+            // broker.send(
+            //     c,
+            //     new Mensaje(
+            //         tipoRepl,
+            //         respuesta.getId(),
+            //         repl
+            //     )
+            // );
+        }
+        else if(respuesta.isRespond())
+        {
+            Utils.print("lega objetoooooooooo " + respuesta.toString());
+            // en teoria es para contestar un request
+            // pero para esto ya hay una funcion que atrapa directamente
+            // el respond
+
+            // en teoria aca se deberia enviar un accept
+
+            // el problema es que los accept por el momento no hacen nada
+            // porque no hay algo asi como una "cola" de envios previos
+        }
+
+        // por el momento no se usan accept
     }
 
     public void answerRequest(Connection c, Object obj)
