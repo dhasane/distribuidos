@@ -1,7 +1,10 @@
 package red;
 import java.util.List;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.logging.Level;
@@ -138,19 +141,17 @@ public class Broker extends Thread{
 
 
     // el broker se quedara escuchando por conexiones entrantes
-    // private void escucharConexionesEntrantes()
+    // hilo que espera a que lleguen nuevos clientes
     public void run()
     {
-        // hilo que espera a que lleguen nuevos clientes
         try{
             while(continuar) {
                 //Esperar en modo escucha al cliente
                 //Establecer conexion con el socket del cliente(Hostname, Puerto)
                 // Escucha nuevo cliente y agrega en lista
                 cnt.nuevaConexion(
-                        new Connection( cnt, listenSocket.accept() )
+                        new Connection( this, listenSocket.accept() )
                 );
-
             }
         } catch(IOException e) {
             System.out.println("Listen socket:"+e.getMessage());
@@ -188,6 +189,26 @@ public class Broker extends Thread{
         }
         this.clientes.remove(c);
         return true;
+    }
+
+    public boolean agregar(String strcon, int port)
+    {
+        try{
+            InetAddress host = InetAddress.getByName(strcon);
+            agregar(
+                new Connection(
+                    this,
+                    new Socket(host, port)
+                )
+            );
+        }
+        catch(UnknownHostException uhe ){
+            System.out.println("direccion no encontrada");
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public synchronized boolean agregar(Connection c)
@@ -249,6 +270,30 @@ public class Broker extends Thread{
                 obj
             )
         );
+    }
+
+    public void respond(Connection c, Mensaje data)
+    {
+        // por el momento es igual, pero esto me permite buscar reply
+        // if ( data.isRespond() )
+        // {
+        //     Utils.print(" llega respuesta : " + data.toString() );
+        //     this.respuestas.put(
+        //         data.getId(),
+        //         data.getContenido()
+        //     );
+        // }
+        // else
+        {
+            Utils.print("llega mensaje " + data.toString());
+            cnt.respond(c, data);
+        }
+    }
+
+    // evento de desconexion de un socket
+    public void disconnect(Connection c)
+    {
+        eliminar(c);
     }
 
     // envia a todas las conexiones

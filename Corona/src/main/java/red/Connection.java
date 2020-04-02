@@ -15,19 +15,20 @@ public class Connection extends Thread{
     private ObjectInputStream in;
     private ObjectOutputStream out;
     private Socket clientSocket;
-    private Conector cnt;
     private int esperandoRespuesta;
     private List<Mensaje> respuestas;
 
     private int tiempo_reintento = 5;
     private int cantidad_reintentos = 5;
 
+    private Broker bro;
+
     private boolean continuar;
 
-    public Connection (Conector conector, Socket aClientSocket) {
+    public Connection (Broker bro, Socket aClientSocket) {
         this.esperandoRespuesta = 0;
         respuestas = new ArrayList<Mensaje>();
-        cnt = conector;
+        this.bro = bro;
         try {
             clientSocket = aClientSocket;
             out = new ObjectOutputStream(clientSocket.getOutputStream()); //Canal de salida
@@ -64,7 +65,7 @@ public class Connection extends Thread{
                     }
                     else
                     {
-                        cnt.respond(this, data);
+                        bro.respond(this, data);
                     }
                 }
             }
@@ -82,7 +83,7 @@ public class Connection extends Thread{
                 e.printStackTrace();
             }
             finally{
-                cnt.disconnect(this);
+                bro.disconnect(this);
             }
         }
     }

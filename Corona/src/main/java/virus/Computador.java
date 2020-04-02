@@ -128,22 +128,8 @@ public class Computador extends Conector{
 
     public void agregarConexion(String strcon, int port)
     {
-        try{
-            InetAddress host = InetAddress.getByName(strcon);
-            broker.agregar(
-                new Connection(
-                    this,
-                    new Socket(host, port)
-                )
-            );
-            broker.balancear();
-        }
-        catch(UnknownHostException uhe ){
-            System.out.println("direccion no encontrada");
-        }
-        catch (IOException e){
-            e.printStackTrace();
-        }
+        broker.agregar( strcon, port );
+        broker.balancear();
     }
 
     @Override
@@ -356,12 +342,6 @@ public class Computador extends Conector{
     {
         broker.agregar(c);
         broker.balancear();
-    }
-
-    @Override
-    public void disconnect(Connection c)
-    {
-        broker.eliminar(c);
     }
 
     @Override
