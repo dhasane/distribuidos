@@ -74,7 +74,7 @@ public class Computador extends Conector{
         );
     }
 
-    public void detener()
+    public synchronized void detener()
     {
         Utils.print("desconectando computador : " + this.broker.getNombre() );
         LOGGER.log(Level.INFO, "desconectando computador : " + this.broker.getNombre() );
@@ -82,6 +82,7 @@ public class Computador extends Conector{
         this.paises.forEach( p -> {
             p.detener();
             this.broker.sendRandomAdd(new PaisEnvio(p));
+            this.paises.remove(p);
         });
         this.broker.detener();
     }

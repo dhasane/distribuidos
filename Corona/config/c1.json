@@ -1,11 +1,15 @@
 {
     "puerto": 4321,
-    "umbral": 1000,
+    "umbral": 500,
     "pasos" : 30,
     "conexiones": [
         {
             "dir": "127.0.0.1",
             "port" : 5678
+        },
+        {
+            "dir": "127.0.0.1",
+            "port" : 9876
         }
     ],
     "paises" : [
@@ -19,6 +23,7 @@
             "posibilidad_viaje_aereo": "0.2",
             "vecinos": [
                 "Chile",
+                "Argentina",
                 "Peru"
             ],
             "vecinos_aereos": [

@@ -1,10 +1,12 @@
 {
     "puerto": 5678,
-    "umbral": 1000,
+    "umbral": 500,
     "pasos" : 0,
     "conexiones": [
-
-
+        {
+            "dir": "127.0.0.1",
+            "port" : 9876
+        }
     ],
     "paises" : [
         {
@@ -20,12 +22,14 @@
                 "Chile"
             ],
             "vecinos_aereos": [
-                "Colombia"
+                "Colombia",
+                "Argentina",
+                "Venezuela"
             ]
         },
         {
             "nombre": "Chile",
-            "poblacion" : "3000",
+            "poblacion" : "1000",
             "enfermos": "0",
             "alta_vulnerabilidad": "0.6",
             "aislamiento": "0.4",
@@ -33,10 +37,12 @@
             "posibilidad_viaje_aereo": "0.5",
             "vecinos": [
                 "Colombia",
-                "Peru"
+                "Peru",
+                "Argentina"
             ],
             "vecinos_aereos": [
-                "Colombia"
+                "Colombia",
+                "Venezuela"
             ]
         }
     ]

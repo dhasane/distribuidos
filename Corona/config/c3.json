@@ -1,0 +1,43 @@
+{
+    "puerto": 9876,
+    "umbral": 500,
+    "pasos" : 0,
+    "conexiones": [
+    ],
+    "paises" : [
+        {
+            "nombre": "Venezuela",
+            "poblacion" : "4000",
+            "enfermos": "0",
+            "alta_vulnerabilidad": "0.7",
+            "aislamiento": "0.1",
+            "posibilidad_viaje": "0.3",
+            "posibilidad_viaje_aereo": "0.1",
+            "vecinos": [
+                "Chile",
+                "Peru"
+            ],
+            "vecinos_aereos": [
+                "Colombia"
+            ]
+        },
+        {
+            "nombre": "Argentina",
+            "poblacion" : "3000",
+            "enfermos": "0",
+            "alta_vulnerabilidad": "0.4",
+            "aislamiento": "0.4",
+            "posibilidad_viaje": "0.3",
+            "posibilidad_viaje_aereo": "0.6",
+            "vecinos": [
+                "Peru"
+            ],
+            "vecinos_aereos": [
+                "Peru",
+                "Chile",
+                "Colombia",
+                "Venezuela"
+            ]
+        }
+    ]
+}
