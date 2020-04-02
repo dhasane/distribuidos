@@ -285,7 +285,6 @@ public class Broker extends Thread{
         // }
         // else
         {
-            Utils.print("llega mensaje " + data.toString());
             cnt.respond(c, data);
         }
     }

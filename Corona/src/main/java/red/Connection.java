@@ -4,11 +4,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import jdk.jshell.execution.Util;
+import virus.Utils;
 
 public class Connection extends Thread{
 
@@ -69,6 +71,8 @@ public class Connection extends Thread{
                     }
                 }
             }
+        } catch(SocketException e){
+            Utils.print("conexion cerrada");
         } catch(ClassNotFoundException e){
             e.printStackTrace();
         } catch(EOFException e){
@@ -105,29 +109,19 @@ public class Connection extends Thread{
     {
         boolean sent = false;
         int intentos = cantidad_reintentos ;
-        do{
-            try{
-                out.writeObject(data);
-                sent = true;
-            } catch(IOException e){
-                if (intentos == 0)
-                    return sent;
-                intentos --;
+        try{
+            out.writeObject(data);
+            sent = true;
+        } catch(SocketException e){
+            Utils.print("conexion cerrada");
+        } catch(IOException e){
 
-                System.out.println("readline:"+e.getMessage());
-                e.printStackTrace();
-                try{
-                    // esperar y reenviar
-                    TimeUnit.SECONDS.sleep(this.tiempo_reintento);
-                }
-                catch(InterruptedException ie ){
-                    ie.printStackTrace();
-                }
-            }
-            // se le podria agregar tambien para que espere una respuesta
-            // o algo asi como cnt.sent(), para que esa sea la clase que elija como responder
-            // o agregar una lista de identificadores de lo que se ha enviado, y que en escuchar(run) reciba cierto 'comando' para decir 'listo el receptor recibio el mensaje'
-        }while(!sent);
+            System.out.println("readline:"+e.getMessage());
+            e.printStackTrace();
+        }
+        // se le podria agregar tambien para que espere una respuesta
+        // o algo asi como cnt.sent(), para que esa sea la clase que elija como responder
+        // o agregar una lista de identificadores de lo que se ha enviado, y que en escuchar(run) reciba cierto 'comando' para decir 'listo el receptor recibio el mensaje'
         return sent;
     }
 
