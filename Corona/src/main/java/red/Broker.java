@@ -25,17 +25,19 @@ public class Broker extends Thread{
 
     private boolean continuar;
 
-    private Map<Integer , Mensaje> respuestas;
+    private Map<String , Mensaje> respuestas;
+    private Map<String , Boolean> esperas;
 
     private int tiempoDescanso = 1500; // segundo y medio
 
-    private int id_mensaje;
+    private final int tiempo_espera = 2;
 
     public Broker(Conector cnt, int serverPort, int umbral)
     {
         try
         {
-            this.respuestas = new HashMap<Integer, Mensaje>();
+            this.respuestas = new HashMap<String, Mensaje>();
+            this.esperas = new HashMap<String, Boolean>();
             this.listenSocket = new ServerSocket(serverPort); //Inicializar socket con el puerto
             this.clientes = new ArrayList<Connection>();
             this.cnt = cnt;
@@ -43,7 +45,6 @@ public class Broker extends Thread{
             this.continuar = true;
             // escucharConexionesEntrantes();
             this.start();
-            this.id_mensaje = Integer.MIN_VALUE;
             LOGGER = Utils.getLogger(this, this.getNombre());
         }
         catch(IOException ioe )
@@ -62,15 +63,8 @@ public class Broker extends Thread{
     {
         Mensaje m = new Mensaje(
             tipo,
-            id_mensaje,
             contenido
         );
-        id_mensaje ++;
-        // espero que esto no se pase ....
-        // if ( id_mensaje == Integer.MAX_VALUE )
-        // {
-        //     id_mensaje = Integer.MIN_VALUE;
-        // }
         return m;
     }
 
@@ -134,7 +128,7 @@ public class Broker extends Thread{
         this.respuestas.remove(msg);
     }
 
-    public synchronized void respuestasAgregar(int key, Mensaje msg)
+    public synchronized void respuestasAgregar(String key, Mensaje msg)
     {
         this.respuestas.put(
             key,
@@ -306,24 +300,31 @@ public class Broker extends Thread{
         if (data.isRequest())
         {
             int intentos = 5;
-            do{
-                Utils.print("se envia request : " + data.toString());
-                c.send(data);
-                intentos --;
-                try
+            boolean seguir = true;
+            while(seguir)
+            {
+                if ( // respuesta no este vacia, si se tenga al cliente y aun queden intentos
+                        this.respuestas.getOrDefault(data.getId(), null) != null
+                        && this.clientes.contains(c)
+                        && intentos >= 0
+                   )
                 {
-                    TimeUnit.SECONDS.sleep(1);
+                    seguir = false;
                 }
-                catch(InterruptedException ie)
+                else
                 {
-                    ie.printStackTrace();
+                    c.send(data);
+                    intentos --;
+                    try
+                    {
+                        TimeUnit.SECONDS.sleep(tiempo_espera);
+                    }
+                    catch(InterruptedException ie)
+                    {
+                        ie.printStackTrace();
+                    }
                 }
-            }while(
-                    // respuesta no este vacia, si se tenga al cliente y aun queden intentos
-                    this.respuestas.getOrDefault(data.getId(), null) != null
-                    && this.clientes.contains(c)
-                    && intentos >= 0
-                );
+            }
 
             if ( this.respuestas.getOrDefault(data.getId(), null) != null )
             {
@@ -387,8 +388,16 @@ public class Broker extends Thread{
     {
         // pero esto me permite buscar reply
 
-        if( this.respuestas.getOrDefault(data.getId(), null) == null )
+        if(
+                ! this.esperas.getOrDefault(data.getId(), false)
+                && this.respuestas.getOrDefault(data.getId(), null) == null
+        )
         {
+            this.esperas.put(data.getId(), true ); // ahora esta esperando
+            // ignorar todos los demas mensajes de este mismo id
+
+            Utils.print("mensajitico aceptado : " + data.toString() );
+
             if ( data.isRespond() )
             {
                 Utils.print(" llega respuesta : " + data.toString() );

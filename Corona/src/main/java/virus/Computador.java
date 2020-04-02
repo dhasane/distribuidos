@@ -298,8 +298,9 @@ public class Computador extends Conector{
 
             broker.send(
                 c,
-                this.broker.createMensaje(
+                new Mensaje(
                     tipo,
+                    respuesta.getId(),
                     contenido
                 )
             );
