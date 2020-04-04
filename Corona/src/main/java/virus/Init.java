@@ -10,14 +10,16 @@ public class Init{
     private Computador comp;
 
     public static void main(String args[]) {
-        for (String str : args)
+        if (args.length > 0)
         {
-            Utils.print(str);
+            String configFile = args[0] ;
+            Utils.print("iniciando con archivo de configuracion : " + configFile );
+            new Init(configFile);
         }
-        Utils.print("final argumentos");
-        String configFile = args.length > 0 ? args[0] : "paises.json" ;
-        Utils.print("iniciando con archivo de configuracion : " + configFile );
-        new Init(configFile);
+        else
+        {
+            Utils.print("por favor espeficiar archivo de configuracion");
+        }
     }
 
     private Init( String config )

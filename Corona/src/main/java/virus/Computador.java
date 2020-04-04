@@ -300,6 +300,7 @@ public class Computador extends Conector{
                 c,
                 new Mensaje(
                     tipo,
+                    respuesta.getId(), //
                     contenido
                 )
             );
@@ -308,8 +309,6 @@ public class Computador extends Conector{
         {
             // esto aca no es realmente necesario, este tipo de mensaje es
             // mas para evitar reenviar mensajes
-
-            // Utils.print("lega objetoooooooooo " + respuesta.toString());
 
             // en teoria aca se deberia enviar un accept
             // pero no los estoy manejando

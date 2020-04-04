@@ -223,7 +223,7 @@ public class Broker extends Thread{
         return false;
     }
 
-    public void sendAware( String receptor, Mensaje mensaje )
+    public synchronized void sendAware( String receptor, Mensaje mensaje )
     {
         if( !cnt.local(receptor, mensaje) )
         {

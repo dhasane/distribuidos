@@ -136,7 +136,7 @@ public class Pais extends Thread implements Serializable{
     }
 
     // da un paso de tiempo
-    public synchronized void infectar(){
+    public void infectar(){
         // intentar simular una tasa de infeccion de 1.6
         // int nuevos_enfermos = this.enfermos + (int) (this.enfermos * 1.6);
 
@@ -149,7 +149,7 @@ public class Pais extends Thread implements Serializable{
         this.enfermos = nuevos_enfermos < this.poblacion ? this.enfermos + nuevos_enfermos : this.poblacion ;
     }
 
-    public void viajeroEntrante(Viajero v)
+    public synchronized void viajeroEntrante(Viajero v)
     {
         agregarPoblacion(v.enfermo());
         LOGGER.log(Level.INFO,  "entra viajero : " + v.prt() + " |  pais : " + prt() );
