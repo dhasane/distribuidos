@@ -10,6 +10,7 @@ public class Init{
     private Computador comp;
 
     public static void main(String args[]) {
+<<<<<<< Updated upstream
         if (args.length > 0)
         {
             String configFile = args[0] ;
@@ -20,6 +21,11 @@ public class Init{
         {
             Utils.print("por favor espeficiar archivo de configuracion");
         }
+=======
+        String configFile = args.length > 0 ? args[0] : "paises.json" ;
+        Utils.print("iniciando con archivo de configuracion : " + configFile );
+        new Init(configFile);
+>>>>>>> Stashed changes
     }
 
     private Init( String config )
@@ -36,7 +42,6 @@ public class Init{
         );
 
         obj.getJSONArray("paises").forEach( o -> {
-            Utils.print(o.getClass());
             jsonAPais( (JSONObject) o);
         });
 
@@ -48,9 +53,7 @@ public class Init{
             );
         });
 
-        int pasos = obj.getInt("pasos");
-        this.comp.step(pasos);
-        Utils.print("se leen " + pasos + " pasos");
+        this.comp.step(obj.getInt("pasos"));
     }
 
     public void jsonAPais( JSONObject jo )

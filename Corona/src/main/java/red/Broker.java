@@ -240,10 +240,17 @@ public class Broker extends Thread{
         enviar(c, data);
     }
 
-    private void enviar(Connection c, Mensaje data)
+    private Mensaje enviar(Connection c, Mensaje data)
     {
         if (data.isRequest())
         {
+
+            int intentos = 5;
+            do{
+                hash.wait
+                valor = hash(id)
+            }while(null? && intentos > 0)
+
             // agregar mensajes a los que se les espera request
             // a una lista, para intentar reenviarlos
             // casi mas bien, se podria lanzar un hilo, y
@@ -251,8 +258,12 @@ public class Broker extends Thread{
             // para que este responda
             // y no toca estar revisando si ya contestaron un mensaje
             // en especifico
+
+            return valor;
         }
+
         c.send(data);
+        return null;
     }
 
     public void sendRandomAdd(Object obj)

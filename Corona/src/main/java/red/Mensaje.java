@@ -11,7 +11,7 @@ public class Mensaje implements Serializable{
     private static final long serialVersionUID = 129329939L;
 
     // public static int simple  = 0; // no espera respuesta
-    public static int saludo  = 0; // no espera respuesta
+    public static int saludo  = 0; // primer mesanje al ser conectado
 
     public static int request = 1; // espera respuesta
     public static int respond = 2; // respuesta de un request

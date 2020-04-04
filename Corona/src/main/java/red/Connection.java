@@ -57,6 +57,7 @@ public class Connection extends Thread{
                 // Mensaje data = (Mensaje) in.readObject(); //Datos desde cliente
                 Object obj = in.readObject(); //Datos desde cliente
 
+                Utils.print("llego algo a la conexion :" + obj);
                 if ( obj.getClass() == Mensaje.class )
                 {
                     Mensaje data = (Mensaje) obj;
