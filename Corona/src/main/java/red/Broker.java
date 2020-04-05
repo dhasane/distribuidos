@@ -8,7 +8,12 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.HashMap;
@@ -18,26 +23,25 @@ import virus.Utils;
 public class Broker extends Thread{
 
     private Logger LOGGER;
-    private ServerSocket listenSocket;
-    private List<Connection> clientes;
+
     private Conector cnt;
     private int umbral; // umbral aceptable de diferencia entre pesos de distintos
 
+    // hilo/conexiones
+    private ServerSocket listenSocket;
+    private List<Connection> clientes;
     private boolean continuar;
 
+    // respuestas
     private Map<String , Mensaje> respuestas;
-    private Map<String , Boolean> esperas;
-
-    private int tiempoDescanso = 1500; // segundo y medio
-
-    private final int tiempo_espera = 2;
+    private final int cantidad_intentos = 5;
+    private final int tiempo_espera = 5; // tiempo de espera en segundos
 
     public Broker(Conector cnt, int serverPort, int umbral)
     {
         try
         {
             this.respuestas = new HashMap<String, Mensaje>();
-            this.esperas = new HashMap<String, Boolean>();
             this.listenSocket = new ServerSocket(serverPort); //Inicializar socket con el puerto
             this.clientes = new ArrayList<Connection>();
             this.cnt = cnt;
@@ -58,7 +62,8 @@ public class Broker extends Thread{
         return this.listenSocket.getLocalPort() + "";
     }
 
-
+    // anter era para estandarisar y manejar el id que se les ingresaba
+    // pero siendo que use el date para crear el id, esto dejo de ser necesari o
     public Mensaje createMensaje(double tipo, Object contenido)
     {
         Mensaje m = new Mensaje(
@@ -75,39 +80,25 @@ public class Broker extends Thread{
     {
 
         // si se balancea, puede volver a intentar balancear
-        boolean continuarBalanceo;
+        boolean terminar;
 
         // tengo este nuevo peso
         // ustedes cuanto peso tienen?
         do{
-            continuarBalanceo = false;
+            terminar = false;
             int miPeso = cnt.peso();
             Mensaje respuesta = null;
-            boolean terminar = false;
             for( Connection cliente: this.clientes )
             {
 
-                // esta funcion seria para enviar un mensaje y esperar su respuesta
-                Mensaje m = createMensaje(
+                // si quedo un poco mas limpio que antes
+                respuesta = enviar(
+                    cliente,
+                    createMensaje(
                         Mensaje.weight,
-                        "oiga su peso" // el contenido no importa
-                    );
-                cliente.send(
-                    m
+                        "oiga su peso" // el contenido no importa en este caso
+                    )
                 );
-                while( this.respuestas.getOrDefault(m.getId(), null) == null ){
-                    try
-                    {
-                        TimeUnit.SECONDS.sleep(2);
-                    }
-                    catch(InterruptedException ie)
-                    {
-                        ie.printStackTrace();
-                    }
-                }
-
-                respuesta = this.respuestas.get(m.getId());
-                respuestasEliminar(respuesta);
 
                 // que no este vacio y que el contenido sea int
                 if ( respuesta != null && respuesta.getContenido().getClass() == Integer.class )
@@ -116,11 +107,14 @@ public class Broker extends Thread{
                     terminar |= balancearCliente(cliente, miPeso, peso);
                 }
 
-                continuarBalanceo |= terminar;
-
+                // no revisa al resto de clientes
                 if (terminar) break;
             }
-        }while(continuarBalanceo);
+            // en caso de haber podido balancear exitosamente, reintenta
+            // ya que al haber balanceado, podria tener mas objetos para balancear
+        }while(terminar);
+        // esto se podria hacer con programacion dinamica, o algo asi, pero seria
+        // ya demasiado esfuerzo
     }
 
     public synchronized void respuestasEliminar(Mensaje msg)
@@ -271,7 +265,7 @@ public class Broker extends Thread{
         return false;
     }
 
-    public void sendAware( String receptor, Mensaje mensaje )
+    public synchronized void sendAware( String receptor, Mensaje mensaje )
     {
         boolean entregado = false;
         do{
@@ -281,7 +275,12 @@ public class Broker extends Thread{
                 LOGGER = Utils.getLogger(this, "enviando " + mensaje.getContenido() + " a otro computador" );
                 for( Connection c: this.clientes )
                 {
-                    entregado |= enviar( c, mensaje );
+                    // fue entregado si el mensaje de respuesta dice que fue agregado
+                    Mensaje m = enviar( c, mensaje );
+                    if ( m != null)
+                    {
+                        entregado |= (m.getSubType() == Mensaje.agregado) ;
+                    }
                 }
             }
 
@@ -294,77 +293,91 @@ public class Broker extends Thread{
         enviar(c, data);
     }
 
-    private boolean enviar(Connection c, Mensaje data)
+    // espera a que se responda un mensaje con id, en caso de no ser respondido en
+    // tiempo_de_espera, termina la ejecucion
+    // esto porque no se puede quedar esperando para siempre :v
+    private Mensaje esperarRetornoRespuesta(String id, int tiempo_de_espera) throws TimeoutException
     {
+        Mensaje valor = null;
+        // esto sirve para cortar el funcionamiento de algo despues de que supere un tiempo limite
+        ExecutorService es = Executors.newSingleThreadExecutor();
+        try {
+            final Future<Mensaje> f = es.submit(() -> {
+
+                do{
+                    synchronized(this.respuestas)
+                    {
+                        this.respuestas.wait();
+                    }
+                }while( this.respuestas.getOrDefault(id, null) == null );
+
+                Mensaje m = this.respuestas.getOrDefault(id, null);
+
+                if ( m != null )
+                {
+                    // si ya consiguio el mensaje, lo quita
+                    respuestasEliminar(m);
+                }
+
+                return m;
+            });
+
+            valor = f.get(tiempo_de_espera , TimeUnit.SECONDS);
+
+        } catch (TimeoutException e) {
+            Utils.print("tiempo excedido en la espera de respuesta");
+            new TimeoutException();
+        } catch (ExecutionException e) {
+            Utils.print("se ha interrumpido la ejecucion");
+        } catch (InterruptedException e) {
+            Utils.print("se ha interrumpido la espera de la respuesta");
+        } finally {
+            es.shutdown();
+        }
+
+        return valor;
+    }
+
+    private Mensaje enviar(Connection c, Mensaje data)
+    {
+        // se envia el mensaje
+        c.send(data);
+
+        Mensaje retorno = null;
         boolean exitoso = true;
+
+        // en caso de ser un request, se tiene que esperar a que llegue la respuesta
         if (data.isRequest())
         {
-            int intentos = 5;
+            Mensaje valor = null;
+            int intentos = cantidad_intentos;
             boolean seguir = true;
-            while(seguir)
-            {
-                if ( // respuesta no este vacia, si se tenga al cliente y aun queden intentos
-                        this.respuestas.getOrDefault(data.getId(), null) != null
-                        && this.clientes.contains(c)
-                        && intentos >= 0
-                   )
-                {
+
+            do{
+                try{
+                    valor = esperarRetornoRespuesta(data.getId(), tiempo_espera);
+                    // llegar aca significa que todo corrio adecuadamente
                     seguir = false;
                 }
-                else
+                catch(TimeoutException e)
                 {
-                    c.send(data);
+                    // se reduce la cantidad de intentos y se reenvia el mensaje
                     intentos --;
-                    try
-                    {
-                        TimeUnit.SECONDS.sleep(tiempo_espera);
-                    }
-                    catch(InterruptedException ie)
-                    {
-                        ie.printStackTrace();
-                    }
+                    c.send(data);
                 }
-            }
+            }while(seguir);
 
-            if ( this.respuestas.getOrDefault(data.getId(), null) != null )
+            if ( valor != null )
             {
-                Mensaje msg = this.respuestas.get(data.getId());
-
-                if (msg.isRequest())
+                // en caso de que la respuesta sea un nuevo request
+                if (valor.isRequest())
                 {
-                    cnt.respond(c, msg);
+                    cnt.respond(c, valor);
                 }
-
-                switch(msg.getSubType())
-                {
-                    case 1: // agregado
-                        exitoso = true;
-                        break;
-                    case 2:
-                        exitoso = false;
-                        break;
-                }
-
-                // si es info, va a ser usada en algo, entonces no borrarla
-                if (msg.isRespond() && msg.getSubType() != Mensaje.info )
-                {
-                    respuestasEliminar(msg);
-                }
+                retorno = valor;
             }
-
-            // agregar mensajes a los que se les espera request
-            // a una lista, para intentar reenviarlos
-            // casi mas bien, se podria lanzar un hilo, y
-            // cuando llegue la respuesta, se le pasa a Conector,
-            // para que este responda
-            // y no toca estar revisando si ya contestaron un mensaje
-            // en especifico
         }
-        else
-        {
-            c.send(data);
-        }
-        return exitoso;
+        return retorno;
     }
 
     public void sendRandomAdd(Object obj)
@@ -387,27 +400,24 @@ public class Broker extends Thread{
     public void respond(Connection c, Mensaje data)
     {
         // pero esto me permite buscar reply
+        // ignorar todos los demas mensajes de este mismo id
 
-        if(
-                ! this.esperas.getOrDefault(data.getId(), false)
-                && this.respuestas.getOrDefault(data.getId(), null) == null
-        )
+        if ( data.isRespond() )
         {
-            this.esperas.put(data.getId(), true ); // ahora esta esperando
-            // ignorar todos los demas mensajes de este mismo id
-
-            Utils.print("mensajitico aceptado : " + data.toString() );
-
-            if ( data.isRespond() )
+            Utils.print(" llega respuesta : " + data.toString() );
+            respuestasAgregar(
+                data.getId(),
+                data
+            );
+            synchronized(this.respuestas)
             {
-                Utils.print(" llega respuesta : " + data.toString() );
-                respuestasAgregar(
-                    data.getId(),
-                    data
-                );
+                this.respuestas.notifyAll();
             }
-            cnt.respond(c, data);
+            // le dice a todos los hilos que esten esperando que escuchen
+            // a ver si es lo que esperaban
         }
+        cnt.respond(c, data);
+        return;
     }
 
     // evento de desconexion de un socket
