@@ -4,3 +4,19 @@ peso    |  1.2  |   2.3   |    null        |   peso(int)
 step    |  1.3  | 2.1/2.2 |    pasos(int)  |   null
 viajero |  1.4  | 2.1/2.2 |    Viajero     |   null
 
+
+
+
+E {
+    syncronized(obj)
+    {
+        obj.wait()
+    }
+}
+
+obj.notifyAll()
+
+pais -> Viajeros
+
+
+verificar la carga periodicamente
