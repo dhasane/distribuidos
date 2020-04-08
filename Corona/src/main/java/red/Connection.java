@@ -23,11 +23,11 @@ public class Connection extends Thread{
     private int tiempo_reintento = 5;
     private int cantidad_reintentos = 5;
 
-    private Broker bro;
+    private Conexiones bro;
 
     private boolean continuar;
 
-    public Connection (Broker bro, Socket aClientSocket) {
+    public Connection (Conexiones bro, Socket aClientSocket) {
         this.esperandoRespuesta = 0;
         respuestas = new ArrayList<Mensaje>();
         this.bro = bro;

@@ -8,12 +8,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import red.Mensaje;
-import red.Broker;
+import red.Conexiones;
 import envio.PaisEnvio;
 import envio.Viajero;
 // aqui se va a tener la informacion de un pais
 
-public class Pais extends Thread implements Serializable{
+public class Pais extends Conector{
     private Logger LOGGER;
     private String nombre;
     private int poblacion;
@@ -26,7 +26,6 @@ public class Pais extends Thread implements Serializable{
     // sea facilmente comparable contra el del computador
     private int maxStep;
 
-    private Broker broker;
     private double posibilidad_viaje;
     private double posibilidad_viaje_aereo;
 
@@ -39,8 +38,9 @@ public class Pais extends Thread implements Serializable{
     private double alta_vulnerabilidad;
     private double aislamiento;
 
+    private Conexiones con;
+
     public Pais(
-            Broker broker,
             String nombre,
             int poblacion,
             int enfermos,
@@ -52,7 +52,6 @@ public class Pais extends Thread implements Serializable{
             String[] vecinos_aereos
         )
     {
-        this.broker = broker;
         this.nombre = nombre;
         this.poblacion = poblacion;
         this.enfermos = enfermos;
@@ -66,12 +65,13 @@ public class Pais extends Thread implements Serializable{
         this.steps = 0;
         this.continuar = true;
         LOGGER = Utils.getLogger(this, this.nombre);
-        this.start();
+
+        this.con = new Conexiones(this, serverPort);
+
     }
 
-    public Pais( PaisEnvio p, Broker broker )
+    public Pais( PaisEnvio p )
     {
-        this.broker = broker;
         this.nombre = p.getNombre();
         this.poblacion = p.getPoblacion();
         this.enfermos = p.getEnfermos();
@@ -85,7 +85,8 @@ public class Pais extends Thread implements Serializable{
         this.steps = p.getSteps();
         this.continuar = true;
         LOGGER = Utils.getLogger(this, this.nombre);
-        this.start();
+
+        this.con = new Conexiones(this, serverPort);
     }
 
     public String prt()
@@ -174,9 +175,9 @@ public class Pais extends Thread implements Serializable{
         );
         LOGGER.log(Level.INFO, "nuevo viajero : " + v.prt() );
 
-        this.broker.sendAware(
+        this.con.send(
             pais,
-            this.broker.createMensaje(
+            new Mensaje(
                 Mensaje.viajero,
                 v
             )

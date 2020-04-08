@@ -20,7 +20,7 @@ import virus.Utils;
 
 // representa lo que correra en un computador, falta definir un mejor nombre
 
-public class Computador extends Conector{
+public class Computador {
 
     // contiene una lista de las conexiones
     private Broker broker;
@@ -68,7 +68,7 @@ public class Computador extends Conector{
         Utils.print("agregando pasos : " + pasos );
         receiveStep(pasos);
         this.broker.send(
-            this.broker.createMensaje(
+            new Mensaje(
                 Mensaje.step,
                 pasos
             )
@@ -125,29 +125,24 @@ public class Computador extends Conector{
                 vecinos_aereos
             )
         );
-        broker.balancear();
     }
 
     public void agregarConexion(String strcon, int port)
     {
         broker.agregar( strcon, port );
-        broker.balancear();
     }
 
-    @Override
     public void mensajeSaludo(Connection c)
     {
         this.broker.send(
             c,
-            this.broker.createMensaje(
+            new Mensaje(
                 Mensaje.saludo,
                 this.maxStep
             )
         );
     }
 
-
-    @Override
     public int peso()
     {
         int peso = 0;
@@ -233,7 +228,7 @@ public class Computador extends Conector{
                 else if( this.maxStep > stepsOtro )
                 {
                     this.broker.send(
-                            this.broker.createMensaje(
+                            new Mensaje(
                                 Mensaje.step,
                                 this.maxStep - stepsOtro
                             )
@@ -319,33 +314,4 @@ public class Computador extends Conector{
 
         // por el momento no se usan accept
     }
-
-    @Override
-    public void nuevaConexion(Connection c)
-    {
-        synchronized(broker)
-        {
-            broker.agregar(c);
-        }
-        broker.balancear();
-    }
-
-    @Override
-    public boolean local(String receptor, Mensaje mensaje)
-    {
-        if (mensaje.getContenido().getClass() == Viajero.class)
-        {
-            Viajero v = (Viajero)mensaje.getContenido();
-            for( Pais pais: this.paises )
-            {
-                if (pais.getNombre().equals(receptor))
-                {
-                    pais.viajeroEntrante(v);
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
 }
