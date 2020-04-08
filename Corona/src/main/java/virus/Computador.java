@@ -33,11 +33,12 @@ public class Computador extends Conector{
 
     public Computador(int port, int umbral)
     {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-                public void run() {
-                    detener();
-                }
-	    });
+        // por el momento, para facilitar las pruebas
+        // Runtime.getRuntime().addShutdownHook(new Thread() {
+        //         public void run() {
+        //             detener();
+        //         }
+		// });
         this.paises = new ArrayList<Pais>();
 
         //                       yo que se como responder y por donde escucho
@@ -198,7 +199,7 @@ public class Computador extends Conector{
     }
 
     @Override
-    public Object getObject(int index)
+    public synchronized Object getObject(int index)
     {
         PaisEnvio pe = null;
         if (0 <= index && index < this.paises.size())
@@ -322,7 +323,10 @@ public class Computador extends Conector{
     @Override
     public void nuevaConexion(Connection c)
     {
-        broker.agregar(c);
+        synchronized(broker)
+        {
+            broker.agregar(c);
+        }
         broker.balancear();
     }
 

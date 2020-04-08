@@ -1,7 +1,7 @@
 
 
 all: compile cleanLogs
-	mvn exec:java
+
 
 compile:
 	mvn compile

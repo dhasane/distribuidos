@@ -78,10 +78,8 @@ public class Connection extends Thread{
             }catch (IOException e){
                 e.printStackTrace();
             }
-            finally{
-                bro.disconnect(this);
-            }
         }
+        bro.disconnect(this);
     }
 
     public void detener()

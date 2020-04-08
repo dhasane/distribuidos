@@ -182,6 +182,7 @@ public class Pais extends Thread implements Serializable{
             )
         );
         reducirPoblacion(enfermo);
+        Utils.print(prt());
     }
 
     public int getPoblacion()
