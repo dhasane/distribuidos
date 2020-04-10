@@ -6,72 +6,169 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import envio.PaisEnvio;
+
 import java.util.HashMap;
 
+import virus.Computador;
+import virus.Pais;
 import virus.Utils;
 
-public class Broker extends Thread{
+public class Broker extends Conector{
 
     private Logger LOGGER;
-    private ServerSocket listenSocket;
-    private List<Connection> clientes;
-    private Conector cnt;
-    private int umbral; // umbral aceptable de diferencia entre pesos de distintos
 
+    private Computador cnt;
+    private int umbral; // umbral aceptable de diferencia entre pesos de distintos
+    private Conexiones con;
     private boolean continuar;
 
-    public Broker(Conector cnt, int serverPort, int umbral)
+    private int tiempoDescanso = 30000; // cada 30 segundos
+
+    public Broker(Computador cnt, int serverPort, int umbral)
     {
-        try
+        this.con = new Conexiones(this, serverPort);
+        this.cnt = cnt;
+        this.umbral = umbral;
+        LOGGER = Utils.getLogger(this, this.getNombre());
+        this.start();
+    }
+
+    public void run()
+    {
+        while(this.continuar)
         {
-            this.listenSocket = new ServerSocket(serverPort); //Inicializar socket con el puerto
-            this.clientes = new ArrayList<Connection>();
-            this.cnt = cnt;
-            this.umbral = umbral;
-            this.continuar = true;
-            // escucharConexionesEntrantes();
-            this.start();
-            LOGGER = Utils.getLogger(this, this.getNombre());
+            balancear();
+            try{
+                Thread.sleep(this.tiempoDescanso);
+            }
+            catch(InterruptedException ie)
+            {
+
+            }
         }
-        catch(IOException ioe )
+    }
+
+    @Override
+    public void respond(Connection c, Mensaje respuesta)
+    {
+        LOGGER.log( Level.INFO, "mensaje entrante: " + respuesta.toString() );
+
+        if(respuesta.isRequest())
         {
-            ioe.printStackTrace();
+            double tipo = Mensaje.noAgregado;
+            Object contenido = null;
+            switch(respuesta.getSubType())
+            {
+                case 1: // add
+
+                    if (respuesta.getContenido().getClass() == PaisEnvio.class)
+                    {
+                        tipo = Mensaje.agregado;
+                        cnt.agregar(
+                            new Pais((PaisEnvio)respuesta.getContenido())
+                        );
+                    }
+
+                    break;
+                case 2: // weight - piden el peso
+
+                    // weight es un request, entonces responde
+                    // answerRequest(c, this.peso());
+                    tipo = Mensaje.info;
+                    contenido = cnt.peso();
+                    break;
+            }
+
+            // mensaje escuchado
+            this.con.send(
+                c,
+                new Mensaje(
+                    tipo,
+                    respuesta.getId(),
+                    contenido
+                )
+            );
         }
+        else if(respuesta.isRespond())
+        {
+            // esto aca no es realmente necesario, este tipo de mensaje es
+            // mas para evitar reenviar mensajes
+
+            // Utils.print("lega objetoooooooooo " + respuesta.toString());
+
+            // en teoria aca se deberia enviar un accept
+            // pero no los estoy manejando
+        }
+
+        // por el momento no se usan accept
     }
 
     public String getNombre()
     {
-        return this.listenSocket.getLocalPort() + "";
+        return this.con.getNombre();
     }
 
+    @Override
+    public void nuevaConexion(Connection c)
+    {
+        this.con.agregar(c);
+        balancear();
+    }
+
+    public void send(Mensaje m)
+    {
+        this.con.send(m);
+    }
+
+    public void sendRandomAdd(Object obj)
+    {
+        this.con.sendRandomAdd(obj);
+    }
+
+    public void detener()
+    {
+        this.con.detener();
+    }
+
+    public void agregar(String strcon, int port)
+    {
+        this.con.agregar( strcon, port );
+    }
 
     // se balancea cada vez que se agrega o elimina un elemento
     // tal vez seria mejor preguntarles a todos el promedio y despues si trabajar sobre eso
-    public void balancear()
+    private void balancear()
     {
-
         // si se balancea, puede volver a intentar balancear
-        boolean continuarBalanceo;
+        boolean terminar;
 
         // tengo este nuevo peso
         // ustedes cuanto peso tienen?
         do{
-            continuarBalanceo = false;
+            terminar = false;
             int miPeso = cnt.peso();
             Mensaje respuesta = null;
-            boolean terminar = false;
-            for( Connection cliente: this.clientes )
+            for( Connection cliente: this.con.getClientes() )
             {
 
-                // esta funcion seria para enviar un mensaje y esperar su respuesta
-                respuesta = cliente.sendRespond(
-                        new Mensaje(
-                            Mensaje.weight,
-                            "oiga su peso" // el contenido no importa
-                        )
+                respuesta = this.con.send(
+                    cliente,
+                    new Mensaje(
+                        Mensaje.weight,
+                        "oiga su peso" // el contenido no importa en este caso
+                    )
                 );
 
                 // que no este vacio y que el contenido sea int
@@ -81,12 +178,16 @@ public class Broker extends Thread{
                     terminar |= balancearCliente(cliente, miPeso, peso);
                 }
 
-                continuarBalanceo |= terminar;
-
+                // no revisa al resto de clientes
                 if (terminar) break;
             }
-        }while(continuarBalanceo);
+            // en caso de haber podido balancear exitosamente, reintenta
+            // ya que al haber balanceado, podria tener mas objetos para balancear
+        }while(terminar);
+        // esto se podria hacer con programacion dinamica, o algo asi, pero seria
+        // ya demasiado esfuerzo
     }
+
 
     // saca el valor absoluto
     private int abs(int num) {
@@ -126,7 +227,8 @@ public class Broker extends Thread{
 
             Object obj = cnt.getObject(index);
             if (obj != null){
-                enviar( cliente,
+                this.con.send(
+                    cliente,
                     new Mensaje(
                         Mensaje.add,
                         obj
@@ -137,188 +239,5 @@ public class Broker extends Thread{
             }
         }
         return false;
-    }
-
-
-    // el broker se quedara escuchando por conexiones entrantes
-    // hilo que espera a que lleguen nuevos clientes
-    public void run()
-    {
-        try{
-            while(continuar) {
-                //Esperar en modo escucha al cliente
-                //Establecer conexion con el socket del cliente(Hostname, Puerto)
-                // Escucha nuevo cliente y agrega en lista
-                cnt.nuevaConexion(
-                        new Connection( this, listenSocket.accept() )
-                );
-            }
-        } catch(IOException e) {
-            System.out.println("Listen socket:"+e.getMessage());
-        }
-        finally
-        {
-            try{
-                this.listenSocket.close();
-            }
-            catch(IOException e)
-            {}
-
-            LOGGER.log(Level.INFO, "cerrando puerto : " + this.getNombre() );
-            this.clientes.forEach(c->c.detener());
-        }
-    }
-
-    public void detener()
-    {
-        this.continuar = false;
-        try{
-            this.listenSocket.close();
-        }
-        catch(IOException e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-    public synchronized boolean eliminar(Connection c)
-    {
-        if( !this.clientes.contains(c) )
-        {
-            return false;
-        }
-        this.clientes.remove(c);
-        return true;
-    }
-
-    public boolean agregar(String strcon, int port)
-    {
-        try{
-            InetAddress host = InetAddress.getByName(strcon);
-            agregar(
-                new Connection(
-                    this,
-                    new Socket(host, port)
-                )
-            );
-        }
-        catch(UnknownHostException uhe ){
-            System.out.println("direccion no encontrada");
-        }
-        catch (IOException e){
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public synchronized boolean agregar(Connection c)
-    {
-        // no pueden haber repetidos, no tendria sentido
-        if( !this.clientes.contains(c) )
-        {
-            this.clientes.add(c);
-            cnt.mensajeSaludo(c);
-            return true;
-        }
-        return false;
-    }
-
-    public synchronized void sendAware( String receptor, Mensaje mensaje )
-    {
-        if( !cnt.local(receptor, mensaje) )
-        {
-            LOGGER = Utils.getLogger(this, "enviando " + mensaje.getContenido() + " a otro computador" );
-            this.clientes.forEach( x -> {
-                enviar( x, mensaje );
-            });
-        }
-    }
-
-    // envia a una conexion especifica
-    public void send(Connection c, Mensaje data)
-    {
-        enviar(c, data);
-    }
-
-    private Mensaje enviar(Connection c, Mensaje data)
-    {
-        if (data.isRequest())
-        {
-
-            int intentos = 5;
-            do{
-                hash.wait
-                valor = hash(id)
-            }while(null? && intentos > 0)
-
-            // agregar mensajes a los que se les espera request
-            // a una lista, para intentar reenviarlos
-            // casi mas bien, se podria lanzar un hilo, y
-            // cuando llegue la respuesta, se le pasa a Conector,
-            // para que este responda
-            // y no toca estar revisando si ya contestaron un mensaje
-            // en especifico
-
-            return valor;
-        }
-
-        c.send(data);
-        return null;
-    }
-
-    public void sendRandomAdd(Object obj)
-    {
-        // si no hay nadie a quien enviarle los objetos, nada que hacer
-        if(this.clientes.isEmpty())
-            return;
-
-        // de lo contrario lo envia a una conexion aleatoria, con el fin de no
-        // perder el objeto al desconectar este Conector
-        enviar(
-            this.clientes.get((int) random(0,this.clientes.size())),
-            new Mensaje(
-                Mensaje.add,
-                obj
-            )
-        );
-    }
-
-    public void respond(Connection c, Mensaje data)
-    {
-        // por el momento es igual, pero esto me permite buscar reply
-        // if ( data.isRespond() )
-        // {
-        //     Utils.print(" llega respuesta : " + data.toString() );
-        //     this.respuestas.put(
-        //         data.getId(),
-        //         data.getContenido()
-        //     );
-        // }
-        // else
-        {
-            cnt.respond(c, data);
-        }
-    }
-
-    // evento de desconexion de un socket
-    public void disconnect(Connection c)
-    {
-        eliminar(c);
-    }
-
-    // envia a todas las conexiones
-    public void send(Mensaje data)
-    {
-        this.clientes.forEach( x -> {
-            enviar(x,data);
-        });
-    }
-
-    private double random( int inferior, int superior )
-    {
-        double val = Math.random();
-        if ( val < 0 ) val *= -1;
-        val *= (superior-inferior);
-        return val;
     }
 }

@@ -23,11 +23,11 @@ public class Connection extends Thread{
     private int tiempo_reintento = 5;
     private int cantidad_reintentos = 5;
 
-    private Broker bro;
+    private Conexiones bro;
 
     private boolean continuar;
 
-    public Connection (Broker bro, Socket aClientSocket) {
+    public Connection (Conexiones bro, Socket aClientSocket) {
         this.esperandoRespuesta = 0;
         respuestas = new ArrayList<Mensaje>();
         this.bro = bro;
@@ -44,6 +44,16 @@ public class Connection extends Thread{
         }
     }
 
+    public String getAddr()
+    {
+        return this.clientSocket.getInetAddress().toString();
+    }
+
+    public int getPort()
+    {
+        return this.clientSocket.getPort();
+    }
+
     public String getNombre()
     {
         return this.clientSocket.getPort() + "";
@@ -57,19 +67,10 @@ public class Connection extends Thread{
                 // Mensaje data = (Mensaje) in.readObject(); //Datos desde cliente
                 Object obj = in.readObject(); //Datos desde cliente
 
-                Utils.print("llego algo a la conexion :" + obj);
                 if ( obj.getClass() == Mensaje.class )
                 {
                     Mensaje data = (Mensaje) obj;
-                    if ( this.esperandoRespuesta > 0 && data.getTipo() == Mensaje.respond )
-                    {
-                        this.respuestas.add(data);
-                        this.esperandoRespuesta--;
-                    }
-                    else
-                    {
-                        bro.respond(this, data);
-                    }
+                    bro.respond(this, data);
                 }
             }
         } catch(SocketException e){
@@ -87,10 +88,8 @@ public class Connection extends Thread{
             }catch (IOException e){
                 e.printStackTrace();
             }
-            finally{
-                bro.disconnect(this);
-            }
         }
+        bro.disconnect(this);
     }
 
     public void detener()
@@ -116,7 +115,6 @@ public class Connection extends Thread{
         } catch(SocketException e){
             Utils.print("conexion cerrada");
         } catch(IOException e){
-
             System.out.println("readline:"+e.getMessage());
             e.printStackTrace();
         }
@@ -124,38 +122,5 @@ public class Connection extends Thread{
         // o algo asi como cnt.sent(), para que esa sea la clase que elija como responder
         // o agregar una lista de identificadores de lo que se ha enviado, y que en escuchar(run) reciba cierto 'comando' para decir 'listo el receptor recibio el mensaje'
         return sent;
-    }
-
-    // envia un mensaje y espera respuesta, es bloqueante
-    // esto probablemente se puede pasar a broker
-    public Mensaje sendRespond( Mensaje mensaje )
-    {
-        Mensaje respuesta=null;
-        send(mensaje);
-
-        int respInicial = this.esperandoRespuesta;
-
-        this.esperandoRespuesta ++;
-
-        // aqui busca la respuesta que espera por id o algo asi
-        while( respInicial < esperandoRespuesta ){
-            try
-            {
-                // por alguna razon tiene que haber aqui una pausa
-                // que si no, como que no sirve....
-                TimeUnit.SECONDS.sleep(1);
-            }
-            catch(InterruptedException ie)
-            {
-                ie.printStackTrace();
-            }
-        }
-
-        // esto puede que de un error por el orden,
-        // pero por el momento lo voy a dejar asi :v
-        respuesta = this.respuestas.get(0);
-        this.respuestas.remove(0);
-
-        return respuesta;
     }
 }

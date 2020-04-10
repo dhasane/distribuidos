@@ -3,6 +3,8 @@
 **/*.class
 **/logs/*
 
+**/*.zip
+
 
 ### Maven ###
 target/
