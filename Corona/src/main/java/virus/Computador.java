@@ -15,21 +15,14 @@ import red.Conector;
 import red.Mensaje;
 import red.Connection;
 import envio.PaisEnvio;
-import envio.Viajero;
 import virus.Utils;
 
 // representa lo que correra en un computador, falta definir un mejor nombre
-
 public class Computador {
 
-    // contiene una lista de las conexiones
     private Broker broker;
     private List<Pais> paises;
     private Logger LOGGER;
-
-    // similar a un reloj, marca el maximo de steps que se pueden hacer
-    private int maxStep;
-    // al actualizarse, tambien actualiza los de los paises
 
     public Computador(int port, int umbral)
     {
@@ -41,12 +34,11 @@ public class Computador {
 		// });
         this.paises = new ArrayList<Pais>();
 
-        //                       yo que se como responder y por donde escucho
         this.broker = new Broker(this, port, umbral);
-        this.maxStep = 0;
         LOGGER = Utils.getLogger(this, this.broker.getNombre());
     }
 
+    // imprime todos los paises contenidos en este computador
     public void imprimir()
     {
         String prt = broker.getNombre() + " -> ";
@@ -61,41 +53,19 @@ public class Computador {
         Utils.print( prt + " ( total : " + pesoTotal + " )" );
     }
 
-    // a mi me pasa el tiempo y le digo al resto que tambien lo pasen
-    public void step(int pasos)
-    {
-        // hay que ver una forma de agergar los pasos a nuevos paises, para que todos queden igual
-        Utils.print("agregando pasos : " + pasos );
-        receiveStep(pasos);
-        this.broker.send(
-            new Mensaje(
-                Mensaje.step,
-                pasos
-            )
-        );
-    }
-
+    // detiene el funcionamiento
     public synchronized void detener()
     {
+        // TODO verificar el funcionamiento de esto
         Utils.print("desconectando computador : " + this.broker.getNombre() );
         LOGGER.log(Level.INFO, "desconectando computador : " + this.broker.getNombre() );
 
         this.paises.forEach( p -> {
             p.detener();
-            this.broker.sendRandomAdd(new PaisEnvio(p));
+            // this.broker.sendRandomAdd(new PaisEnvio(p));
             this.paises.remove(p);
         });
         this.broker.detener();
-    }
-
-    public synchronized void receiveStep(int pasos)
-    {
-        LOGGER.log( Level.INFO, "se agregan " + pasos + " pasos");
-        this.maxStep += pasos;
-        this.paises.forEach( p -> {
-            LOGGER.log( Level.INFO, "se agrega " + pasos + " pasos a " + p.getNombre());
-            p.step(pasos);
-        });
     }
 
     public void agregarPais(
@@ -104,45 +74,33 @@ public class Computador {
             int enfermos_iniciales,
             double alta_vulnerabilidad,
             double aislamiento,
-            double posibilidad_viaje,
-            double posibilidad_viaje_aereo,
-            String[] vecinos,
-            String[] vecinos_aereos
+            List<String[]> vecinos,
+            List<String[]> vecinosAereos,
+            int port
             )
     {
         LOGGER.log(Level.INFO, "agregando pais " + nombre  );
         agregar(
             new Pais(
-                this.broker,
                 nombre,
                 poblacion,
                 enfermos_iniciales,
                 alta_vulnerabilidad,
                 aislamiento,
-                posibilidad_viaje,
-                posibilidad_viaje_aereo,
                 vecinos,
-                vecinos_aereos
+                vecinosAereos,
+                port
             )
         );
     }
 
+    // agrega una nueva conexion
     public void agregarConexion(String strcon, int port)
     {
         broker.agregar( strcon, port );
     }
 
-    public void mensajeSaludo(Connection c)
-    {
-        this.broker.send(
-            c,
-            new Mensaje(
-                Mensaje.saludo,
-                this.maxStep
-            )
-        );
-    }
-
+    // retorna la carga de este computador
     public int peso()
     {
         int peso = 0;
@@ -153,7 +111,7 @@ public class Computador {
         return peso;
     }
 
-    @Override
+    // retorna una lista con el peso de procesamiento de cada uno de los objetos
     public List<Integer> pesoObjetos()
     {
         // TODO se podria en el peso tambien contar comunicaciones
@@ -162,25 +120,19 @@ public class Computador {
                           .collect(Collectors.toList());
     }
 
+    // agrega un pais a la lista de paises
     private synchronized void agregar(Pais p)
     {
         if (p != null)
         {
-            int maxSteps = p.getMaxStep();
-            LOGGER.log( Level.INFO, "agregando pais : " + p.getNombre() + " con " + maxSteps + " <-> " + this.maxStep );
-            Utils.print( "agregando pais : " + p.getNombre() + " con " + maxSteps + " <-> " + this.maxStep );
-            if( maxSteps < this.maxStep )
-            {
-                int diferencia =  this.maxStep - p.getMaxStep();
-                LOGGER.log( Level.INFO, "actualizando " + p.getNombre() + " de " + maxSteps + " a " + diferencia + " pasos" );
-
-                p.step(diferencia);
-            }
+            LOGGER.log( Level.INFO, "agregando pais : " + p.getNombre() );
+            Utils.print( "agregando pais : " + p.getNombre() );
             this.paises.add(p);
             imprimir();
         }
     }
 
+    // elimina un pais de la lista de paises
     private synchronized boolean eliminar(Pais p)
     {
         if (this.paises.contains(p))
@@ -193,7 +145,7 @@ public class Computador {
         return false;
     }
 
-    @Override
+    // consigue un objeto y lo borra
     public synchronized Object getObject(int index)
     {
         PaisEnvio pe = null;
@@ -203,115 +155,9 @@ public class Computador {
             if (eliminar( pa ))
             {
                 pe = new PaisEnvio( pa );
-                LOGGER.log( Level.INFO, "enviando pais : " + pe.getNombre() );
             }
         }
         return pe;
     }
 
-    @Override
-    public void respond(Connection c, Mensaje respuesta)
-    {
-        LOGGER.log( Level.INFO, "mensaje entrante: " + respuesta.toString() );
-
-        if (respuesta.isSaludo())
-        {
-            if ( respuesta.getContenido().getClass() == Integer.class )
-            {
-                int stepsOtro = (int) respuesta.getContenido();
-                Utils.print("nueva conexion recibida");
-
-                if (this.maxStep < stepsOtro)
-                {
-                    this.step(stepsOtro - this.maxStep);
-                }
-                else if( this.maxStep > stepsOtro )
-                {
-                    this.broker.send(
-                            new Mensaje(
-                                Mensaje.step,
-                                this.maxStep - stepsOtro
-                            )
-                    );
-                }
-                // si son iguales all gud
-
-            }
-        }
-        else if(respuesta.isRequest())
-        {
-            double tipo = Mensaje.noAgregado;
-            Object contenido = null;
-            switch(respuesta.getSubType())
-            {
-                case 1: // add
-
-                    if (respuesta.getContenido().getClass() == PaisEnvio.class)
-                    {
-                        tipo = Mensaje.agregado;
-                        agregar(
-                            new Pais((PaisEnvio)respuesta.getContenido(), this.broker)
-                        );
-                    }
-
-                    break;
-                case 2: // weight - piden el peso
-
-                    // weight es un request, entonces responde
-                    // answerRequest(c, this.peso());
-                    tipo = Mensaje.info;
-                    contenido = this.peso();
-                    break;
-
-                case 3: // steps
-
-                    if ( respuesta.getContenido().getClass() == Integer.class )
-                    {
-                        receiveStep( (int) respuesta.getContenido() );
-                        tipo = Mensaje.agregado;
-                    }
-
-                    break;
-                case 4: // llega viajero
-
-                    if(  respuesta.getContenido().getClass() == Viajero.class )
-                    {
-                        Viajero v = (Viajero) respuesta.getContenido();
-                        String destino = v.getDestino();
-                        for( Pais p : this.paises)
-                        {
-                            String p_actual = p.getNombre();
-                            if( p_actual.equals(destino) )
-                            {
-                                LOGGER.log( Level.INFO, "entra viajero : " + v.prt() );
-                                p.viajeroEntrante(v);
-                                tipo = Mensaje.agregado;
-                            }
-                        }
-                    }
-                    break;
-            }
-
-            broker.send(
-                c,
-                new Mensaje(
-                    tipo,
-                    respuesta.getId(),
-                    contenido
-                )
-            );
-        }
-        else if(respuesta.isRespond())
-        {
-            // esto aca no es realmente necesario, este tipo de mensaje es
-            // mas para evitar reenviar mensajes
-
-            // Utils.print("lega objetoooooooooo " + respuesta.toString());
-
-            // en teoria aca se deberia enviar un accept
-            // pero no los estoy manejando
-        }
-
-        // por el momento no se usan accept
-    }
 }

@@ -20,8 +20,7 @@ public class Mensaje implements Serializable{
     // request
     public static double add     = 1.1; // agregar el elemento enviado
     public static double weight  = 1.2; // pide el "peso de procesamiento"
-    public static double step    = 1.3; // tipo de request, envia un paso de tiempo
-    public static double viajero = 1.4; // es mas facil declararlas por aca ....
+    public static double estado  = 1.3; // envia el estado
 
     // reply
     public static double agregado   = 2.1;

@@ -44,6 +44,16 @@ public class Connection extends Thread{
         }
     }
 
+    public String getAddr()
+    {
+        return this.clientSocket.getInetAddress().toString();
+    }
+
+    public int getPort()
+    {
+        return this.clientSocket.getPort();
+    }
+
     public String getNombre()
     {
         return this.clientSocket.getPort() + "";

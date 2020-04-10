@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import java.util.logging.Level;
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -35,7 +36,8 @@ public class Conexiones extends Thread{
     // respuestas
     private Map<String , Respuesta> respuestas;
     private final int cantidad_intentos = 5;
-    private final int tiempo_espera = 1; // tiempo de espera en segundos
+    // tiempo de espera en segundos para las respuestas
+    private final int tiempo_espera = 1; // esto son segundos
 
     public Conexiones(Conector cnt, int serverPort)
     {
@@ -46,9 +48,26 @@ public class Conexiones extends Thread{
             this.clientes = new ArrayList<Connection>();
             this.cnt = cnt;
             this.continuar = true;
-            // escucharConexionesEntrantes();
-            this.start();
             LOGGER = Utils.getLogger(this, this.getNombre());
+            this.start();
+        }
+        catch(IOException ioe )
+        {
+            ioe.printStackTrace();
+        }
+    }
+
+    public Conexiones(Conector cnt)
+    {
+        try
+        {
+            this.respuestas = new HashMap<String, Respuesta>();
+            this.listenSocket = new ServerSocket(0); //Inicializar socket un puerto cualquiera
+            this.clientes = new ArrayList<Connection>();
+            this.cnt = cnt;
+            this.continuar = true;
+            LOGGER = Utils.getLogger(this, this.getNombre());
+            this.start();
         }
         catch(IOException ioe )
         {
@@ -130,24 +149,40 @@ public class Conexiones extends Thread{
         return true;
     }
 
+    public List<String[]> getConexiones()
+    {
+        List<String[]> conexiones = new ArrayList<String[]>();
+        for( Connection c: this.clientes )
+        {
+            String[] val = { c.getAddr(), String.valueOf(c.getPort()) };
+            conexiones.add(val);
+        }
+        return conexiones;
+    }
+
     public synchronized boolean agregar(String strcon, int port)
     {
+        boolean ret = false;
         try{
             InetAddress host = InetAddress.getByName(strcon);
-            agregar(
+            ret = agregar(
                 new Connection(
                     this,
                     new Socket(host, port)
                 )
             );
         }
+        catch(ConnectException ce)
+        {
+            Utils.print("conexion : " + strcon + ":" + port + " no disponible" );
+        }
         catch(UnknownHostException uhe ){
-            System.out.println("direccion no encontrada");
+            Utils.print("direccion no encontrada");
         }
         catch (IOException e){
             e.printStackTrace();
         }
-        return false;
+        return ret;
     }
 
     public synchronized boolean agregar(Connection c)
@@ -156,16 +191,37 @@ public class Conexiones extends Thread{
         if( !this.clientes.contains(c) )
         {
             this.clientes.add(c);
-            cnt.mensajeSaludo(c);
             return true;
         }
         return false;
     }
 
+    // retorna un string para imprimir
+    public synchronized String prt()
+    {
+        String prt = this.clientes.size() + " > ";
+        for( Connection c : this.clientes )
+        {
+            prt += c.getAddr() + ":" + c.getPort();
+        }
+        return prt;
+    }
+
     // envia a una conexion especifica
-    public Mensaje send(Connection c, Mensaje data)
+    public synchronized Mensaje send(Connection c, Mensaje data)
     {
         return enviar(c, data);
+    }
+
+    // envia a todas las conexiones
+    public synchronized void send(Mensaje data)
+    {
+        // tambien se podria retornar una lista de respuestas
+        // aunque por el momento no es necesario
+        for (Connection c : this.clientes)
+        {
+            enviar(c,data);
+        }
     }
 
     public void sendRandomAdd(Object obj)
@@ -189,14 +245,6 @@ public class Conexiones extends Thread{
     public void disconnect(Connection c)
     {
         eliminar(c);
-    }
-
-    // envia a todas las conexiones
-    public void send(Mensaje data)
-    {
-        this.clientes.forEach( x -> {
-            enviar(x,data);
-        });
     }
 
     private double random( int inferior, int superior )
@@ -235,7 +283,7 @@ public class Conexiones extends Thread{
             valor = f.get(tiempo_de_espera , TimeUnit.SECONDS);
 
         } catch (TimeoutException e) {
-            Utils.print("tiempo excedido en la espera de respuesta");
+            // Utils.print("tiempo excedido en la espera de respuesta");
             new TimeoutException();
         } catch (ExecutionException e) {
             Utils.print("se ha interrumpido la ejecucion");
@@ -248,13 +296,13 @@ public class Conexiones extends Thread{
         return valor;
     }
 
-    private Mensaje enviar(Connection c, Mensaje data)
+    private synchronized Mensaje enviar(Connection c, Mensaje data)
     {
         if (data.isRequest())
             respuestasAgregar(data.getId());
         // se envia el mensaje
         c.send(data);
-        Utils.print("enviando : " + data.toString() );
+        // Utils.print("enviando : " + data.toString() );
 
         Mensaje retorno = null;
         boolean exitoso = true;
@@ -287,17 +335,14 @@ public class Conexiones extends Thread{
     {
         // pero esto me permite buscar reply
         // ignorar todos los demas mensajes de este mismo id
-
         if ( data.isRespond() )
         {
-            Utils.print(" llega respuesta : " + data.toString() );
-
+            // Utils.print(" llega respuesta : " + data.toString() );
             Respuesta r = this.respuestas.getOrDefault(data.getId(), null);
             // en caso de ya haber recibido la respuesta, esta ya habra sido manejada
             // y sera null
             if (r != null)
             {
-                Utils.print("es agregada");
                 r.agregarRespuesta(data);;
                 synchronized(r)
                 {
@@ -308,5 +353,4 @@ public class Conexiones extends Thread{
         cnt.respond(c, data);
         return;
     }
-
 }

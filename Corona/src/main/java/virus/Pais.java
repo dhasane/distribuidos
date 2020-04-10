@@ -9,8 +9,9 @@ import java.util.logging.Logger;
 
 import red.Mensaje;
 import red.Conexiones;
+import red.Connection;
+import red.Conector;
 import envio.PaisEnvio;
-import envio.Viajero;
 // aqui se va a tener la informacion de un pais
 
 public class Pais extends Conector{
@@ -19,22 +20,9 @@ public class Pais extends Conector{
     private int poblacion;
     private int enfermos;
     private boolean continuar;
-    private int steps; // pasos que faltan para ir a tiempo
-
-    // cuantas veces se han agregado pasos
-    // funciona en cierta forma como un reloj, haciendo que
-    // sea facilmente comparable contra el del computador
-    private int maxStep;
-
-    private double posibilidad_viaje;
-    private double posibilidad_viaje_aereo;
-
-    private String[] vecinos;
-    private String[] vecinos_aereos;
 
     private int tiempo_descanso = 1;
-// Para cada país:
-    // y el porcentaje de aislamiento de las personas.
+
     private double alta_vulnerabilidad;
     private double aislamiento;
 
@@ -46,10 +34,9 @@ public class Pais extends Conector{
             int enfermos,
             double alta_vulnerabilidad,
             double aislamiento,
-            double posibilidad_viaje,
-            double posibilidad_viaje_aereo,
-            String[] vecinos,
-            String[] vecinos_aereos
+            List<String[]> vecinos,
+            List<String[]> vecinosAereos,
+            int serverPort
         )
     {
         this.nombre = nombre;
@@ -57,17 +44,16 @@ public class Pais extends Conector{
         this.enfermos = enfermos;
         this.alta_vulnerabilidad = alta_vulnerabilidad;
         this.aislamiento = aislamiento;
-        this.posibilidad_viaje = posibilidad_viaje;
-        this.posibilidad_viaje_aereo = posibilidad_viaje_aereo;
-        this.vecinos = vecinos;
-        this.vecinos_aereos = vecinos_aereos;
-        this.maxStep = 0;
-        this.steps = 0;
-        this.continuar = true;
-        LOGGER = Utils.getLogger(this, this.nombre);
 
         this.con = new Conexiones(this, serverPort);
+        vecinos.forEach( v -> {
+            if ( v[0].length() > 0 && v[1].length() > 0 )
+                this.con.agregar(v[0], Integer.parseInt(v[1]));
+        });
 
+        this.continuar = true;
+        LOGGER = Utils.getLogger(this, this.nombre);
+        this.start();
     }
 
     public Pais( PaisEnvio p )
@@ -77,16 +63,24 @@ public class Pais extends Conector{
         this.enfermos = p.getEnfermos();
         this.alta_vulnerabilidad = p.getAltaVulnerabilidad();
         this.aislamiento = p.getAislamiento();
-        this.posibilidad_viaje = p.getPosibilidad_viaje();
-        this.posibilidad_viaje_aereo = p.getPosibilidad_viaje_aereo();
-        this.vecinos = p.getVecinos();
-        this.vecinos_aereos = p.getVecinos_aereos();
-        this.maxStep = p.getMaxStep();
-        this.steps = p.getSteps();
+
+        // abre un puerto de servidor en un puerto cualquiera
+        this.con = new Conexiones(this);
+        p.getVecinos().forEach( v -> {
+            if ( v[0].length() > 0 && v[1].length() > 0 )
+                this.con.agregar(v[0], Integer.parseInt(v[1]));
+        });
+
         this.continuar = true;
         LOGGER = Utils.getLogger(this, this.nombre);
 
-        this.con = new Conexiones(this, serverPort);
+        this.start();
+
+    }
+
+    public List<String[]> getVecinos()
+    {
+        return this.con.getConexiones();
     }
 
     public String prt()
@@ -96,26 +90,20 @@ public class Pais extends Conector{
 
     public void run()
     {
-        LOGGER.log( Level.INFO, "iniciando : " + this.nombre + " con " + this.steps + " pasos");
+        LOGGER.log( Level.INFO, "iniciando : " + this.nombre );
         while(continuar)
         {
             try{
-                if(steps > 0)
-                {
-                    infectar();
-                    if( random(0,1) < posibilidad_viaje )
-                    {
-                        viaje(this.vecinos, "tierra");
-                    }
-                    if( random(0,1) < posibilidad_viaje_aereo )
-                    {
-                        viaje(this.vecinos_aereos, "aire");
-                    }
-                    this.steps--;
-                    LOGGER.log(Level.INFO, "pasa un dia : " + prt() + " quedan " + steps + " dias" );
-                    Utils.print( "pasa un dia : " + prt() + " quedan " + steps + " dias" );
-                }
-                Thread.sleep(1000);
+                infectar();
+                this.con.send(
+                    new Mensaje(
+                        Mensaje.estado,
+                        new PaisEnvio(this)
+                    )
+                );
+                LOGGER.log(Level.INFO, "pasa un dia : " + prt() );
+                Utils.print( "pasa un dia : " + prt() );
+                Thread.sleep(this.poblacion);
             }
             catch(InterruptedException ie)
             {
@@ -124,16 +112,10 @@ public class Pais extends Conector{
         }
         LOGGER.log(Level.INFO, "detenido" );
     }
+
     public void detener()
     {
         this.continuar = false;
-    }
-
-    public synchronized void step(int pasos)
-    {
-        LOGGER.log(Level.INFO, "agegando " + pasos + " pasos" );
-        this.steps += pasos ;
-        this.maxStep += pasos;
     }
 
     // da un paso de tiempo
@@ -141,49 +123,41 @@ public class Pais extends Conector{
         // intentar simular una tasa de infeccion de 1.6
         // int nuevos_enfermos = this.enfermos + (int) (this.enfermos * 1.6);
 
-        int nuevos_enfermos = (int) (this.enfermos * 1.6);
+        double nuevos_enfermos = (this.enfermos * 1.6);
         nuevos_enfermos += nuevos_enfermos * this.alta_vulnerabilidad;
         nuevos_enfermos -= nuevos_enfermos * this.aislamiento;
 
         if (nuevos_enfermos < 0 ) nuevos_enfermos = 0;
 
-        this.enfermos = nuevos_enfermos < this.poblacion ? this.enfermos + nuevos_enfermos : this.poblacion ;
+        int nuevos = this.enfermos + ((int)nuevos_enfermos);
+
+        this.enfermos = nuevos < this.poblacion ? nuevos : this.poblacion ;
     }
 
-    public void viajeroEntrante(Viajero v)
-    {
-        agregarPoblacion(v.enfermo());
-        LOGGER.log(Level.INFO,  "entra viajero : " + v.prt() + " |  pais : " + prt() );
-        Utils.print( "entra viajero : " + v.prt() + " |  pais : " + prt() );
-    }
+    // da un paso de tiempo
+    public synchronized void infectar(double posibilidadInfecion, String nombre){
+        // intentar simular una tasa de infeccion de 1.6
+        // int nuevos_enfermos = this.enfermos + (int) (this.enfermos * 1.6);
 
-    private void viaje(String[] destinos, String metodo)
-    {
-        // viaje aleatorio a uno de los paises destino
+        // Utils.print( "posibilidad " +  posibilidadInfecion);
 
-        if ( destinos.length == 0 )
-            return;
-        String pais = destinos[ (int) random(0, destinos.length) ];
+        // solo agregar dos, por el momento
+        double nuevos_enfermos = random(0, 1) < posibilidadInfecion ? 2 : 0;
+        // Utils.print("nuevos infectados : " + this.enfermos + " " + nuevos_enfermos);
 
-        boolean enfermo = this.enfermos > 0 ? random(0,1) < this.enfermos / this.poblacion : false;
+        nuevos_enfermos += nuevos_enfermos * this.alta_vulnerabilidad;
+        nuevos_enfermos -= nuevos_enfermos * this.aislamiento;
 
-        Viajero v = new Viajero(
-            enfermo,
-            this.nombre,
-            pais,
-            metodo
-        );
-        LOGGER.log(Level.INFO, "nuevo viajero : " + v.prt() );
+        if (nuevos_enfermos < 0 ) nuevos_enfermos = 0;
 
-        this.con.send(
-            pais,
-            new Mensaje(
-                Mensaje.viajero,
-                v
-            )
-        );
-        reducirPoblacion(enfermo);
-        Utils.print(prt());
+        int nuevos = this.enfermos + ((int)nuevos_enfermos);
+
+        if (nuevos != this.enfermos && nuevos < this.poblacion )
+        {
+            Utils.print("alguien se infecta en " + this.nombre + " por " + nombre);
+        }
+
+        this.enfermos = nuevos < this.poblacion ? nuevos : this.poblacion ;
     }
 
     public int getPoblacion()
@@ -242,36 +216,6 @@ public class Pais extends Conector{
         return this.enfermos;
     }
 
-    public double getPosibilidad_viaje()
-    {
-        return this.posibilidad_viaje;
-    }
-
-    public double getPosibilidad_viaje_aereo()
-    {
-        return this.posibilidad_viaje_aereo;
-    }
-
-    public String[] getVecinos()
-    {
-        return this.vecinos;
-    }
-
-    public String[] getVecinos_aereos()
-    {
-        return this.vecinos_aereos;
-    }
-
-    public int getSteps()
-    {
-        return this.steps;
-    }
-
-    public int getMaxStep()
-    {
-        return this.maxStep;
-    }
-
     public double getAislamiento()
     {
         return this.aislamiento;
@@ -280,5 +224,64 @@ public class Pais extends Conector{
     public double getAltaVulnerabilidad()
     {
         return this.alta_vulnerabilidad;
+    }
+
+
+    @Override
+    public void respond(Connection c, Mensaje respuesta)
+    {
+        LOGGER.log( Level.INFO, "mensaje entrante: " + respuesta.toString() );
+        // Utils.print(  "mensaje entrante: " + respuesta.toString() );
+
+        if(respuesta.isRequest())
+        {
+            double tipo = Mensaje.noAgregado;
+            Object contenido = null;
+
+            // TODO hacer que esto sea con un objeto mas liviano que todo el estado del pais
+            if ( respuesta.getTipo() == Mensaje.estado && respuesta.getContenido().getClass() == PaisEnvio.class)
+            {
+                PaisEnvio pe = (PaisEnvio) respuesta.getContenido();
+                // Utils.print("en " + pe.getNombre() + " hay " + pe.getEnfermos() + "/" + pe.getPoblacion() );
+                if  ( pe.getEnfermos() > 0 )
+                {
+                    // agregarEnfermos();
+                    double porcentajeInfeccion = pe.getEnfermos();
+                    porcentajeInfeccion /= pe.getPoblacion();
+
+                    infectar(porcentajeInfeccion, pe.getNombre());
+                }
+                tipo = Mensaje.agregado;
+            }
+
+            // mensaje escuchado
+            // importante siempre responder a un request
+            this.con.send(
+                c,
+                new Mensaje(
+                    tipo,
+                    respuesta.getId(),
+                    contenido
+                )
+            );
+        }
+        else if(respuesta.isRespond())
+        {
+            // esto aca no es realmente necesario, este tipo de mensaje es
+            // mas para evitar reenviar mensajes
+
+            // Utils.print("lega objetoooooooooo " + respuesta.toString());
+
+            // en teoria aca se deberia enviar un accept
+            // pero no los estoy manejando
+        }
+
+        // por el momento no se usan accept
+    }
+
+    @Override
+    public void nuevaConexion(Connection c)
+    {
+        this.con.agregar(c);
     }
 }

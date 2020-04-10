@@ -16,9 +16,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import envio.PaisEnvio;
+
 import java.util.HashMap;
 
 import virus.Computador;
+import virus.Pais;
 import virus.Utils;
 
 public class Broker extends Conector{
@@ -28,20 +32,88 @@ public class Broker extends Conector{
     private Computador cnt;
     private int umbral; // umbral aceptable de diferencia entre pesos de distintos
     private Conexiones con;
+    private boolean continuar;
+
+    private int tiempoDescanso = 30000; // cada 30 segundos
 
     public Broker(Computador cnt, int serverPort, int umbral)
     {
-        try
+        this.con = new Conexiones(this, serverPort);
+        this.cnt = cnt;
+        this.umbral = umbral;
+        LOGGER = Utils.getLogger(this, this.getNombre());
+        this.start();
+    }
+
+    public void run()
+    {
+        while(this.continuar)
         {
-            this.con = new Conexiones(this, serverPort, umbral);
-            this.cnt = cnt;
-            this.umbral = umbral;
-            LOGGER = Utils.getLogger(this, this.getNombre());
+            balancear();
+            try{
+                Thread.sleep(this.tiempoDescanso);
+            }
+            catch(InterruptedException ie)
+            {
+
+            }
         }
-        catch(IOException ioe )
+
+    }
+
+    @Override
+    public void respond(Connection c, Mensaje respuesta)
+    {
+        LOGGER.log( Level.INFO, "mensaje entrante: " + respuesta.toString() );
+
+        if(respuesta.isRequest())
         {
-            ioe.printStackTrace();
+            double tipo = Mensaje.noAgregado;
+            Object contenido = null;
+            switch(respuesta.getSubType())
+            {
+                case 1: // add
+
+                    if (respuesta.getContenido().getClass() == PaisEnvio.class)
+                    {
+                        tipo = Mensaje.agregado;
+                        cnt.agregar(
+                            new Pais((PaisEnvio)respuesta.getContenido())
+                        );
+                    }
+
+                    break;
+                case 2: // weight - piden el peso
+
+                    // weight es un request, entonces responde
+                    // answerRequest(c, this.peso());
+                    tipo = Mensaje.info;
+                    contenido = cnt.peso();
+                    break;
+            }
+
+            // mensaje escuchado
+            this.con.send(
+                c,
+                new Mensaje(
+                    tipo,
+                    respuesta.getId(),
+                    contenido
+                )
+            );
         }
+        else if(respuesta.isRespond())
+        {
+            // esto aca no es realmente necesario, este tipo de mensaje es
+            // mas para evitar reenviar mensajes
+
+            // Utils.print("lega objetoooooooooo " + respuesta.toString());
+
+            // en teoria aca se deberia enviar un accept
+            // pero no los estoy manejando
+        }
+
+        // por el momento no se usan accept
     }
 
     public String getNombre()
@@ -92,7 +164,6 @@ public class Broker extends Conector{
             for( Connection cliente: this.con.getClientes() )
             {
 
-                // si quedo un poco mas limpio que antes
                 respuesta = this.con.send(
                     cliente,
                     new Mensaje(
@@ -157,8 +228,9 @@ public class Broker extends Conector{
 
             Object obj = cnt.getObject(index);
             if (obj != null){
-                enviar( cliente,
-                    createMensaje(
+                this.con.send(
+                    cliente,
+                    new Mensaje(
                         Mensaje.add,
                         obj
                     )
