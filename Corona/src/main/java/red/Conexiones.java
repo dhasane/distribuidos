@@ -207,23 +207,6 @@ public class Conexiones extends Thread{
         return prt;
     }
 
-    // envia a una conexion especifica
-    public synchronized Mensaje send(Connection c, Mensaje data)
-    {
-        return enviar(c, data);
-    }
-
-    // envia a todas las conexiones
-    public synchronized void send(Mensaje data)
-    {
-        // tambien se podria retornar una lista de respuestas
-        // aunque por el momento no es necesario
-        for (Connection c : this.clientes)
-        {
-            enviar(c,data);
-        }
-    }
-
     public void sendRandomAdd(Object obj)
     {
         // si no hay nadie a quien enviarle los objetos, nada que hacer
@@ -253,6 +236,23 @@ public class Conexiones extends Thread{
         if ( val < 0 ) val *= -1;
         val *= (superior-inferior);
         return val;
+    }
+
+    // envia a una conexion especifica
+    public synchronized Mensaje send(Connection c, Mensaje data)
+    {
+        return enviar(c, data);
+    }
+
+    // envia a todas las conexiones
+    public synchronized void send(Mensaje data)
+    {
+        // tambien se podria retornar una lista de respuestas
+        // aunque por el momento no es necesario
+        for (Connection c : this.clientes)
+        {
+            enviar(c,data);
+        }
     }
 
     // espera a que se responda un mensaje con id, en caso de no ser respondido en

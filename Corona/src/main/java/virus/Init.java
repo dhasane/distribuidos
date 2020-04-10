@@ -2,7 +2,9 @@ package virus;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.json.*;
@@ -10,49 +12,95 @@ import org.json.*;
 public class Init{
 
     private Computador comp;
+    private Map<String, Map<String, String> > conexiones;
+    private Map<String, Map<String, String> > paises;
 
     public static void main(String args[]) {
-        if (args.length > 0)
+        if (args.length > 1)
         {
-            String configFile = args[0] ;
-            Utils.print("iniciando con archivo de configuracion : " + configFile );
-            new Init(configFile);
+            String config = args[0];
+            String nombre = args[1];
+            Utils.print("iniciando con archivo de configuracion : " + config + " con nombre : " + nombre);
+            new Init(config, nombre);
         }
         else
         {
-            Utils.print("por favor espeficiar archivo de configuracion");
+            Utils.print("por favor espeficiar archivo de configuracion y nombre");
         }
     }
 
-    private Init( String config )
+    private void getGeneral(JSONObject json)
     {
-        cargarConfiguracion( config );
+        JSONArray jac = json.getJSONArray("conexiones");
+        for( int a = 0 ; a < jac.length() ; a++ )
+        {
+            JSONObject jo = jac.getJSONObject(a);
+            Map<String, String> value = new HashMap<String, String>();
+            value.put( "dir", jo.getString("dir"));
+            value.put( "port", jo.getString("port"));
+            this.conexiones.put(
+                jo.getString("nombre"),
+                value
+            );
+        }
+
+        JSONArray jap = json.getJSONArray("paises");
+
+        for( int a = 0 ; a < jap.length() ; a++ )
+        {
+            JSONObject jo = jap.getJSONObject(a);
+            Map<String, String> value = new HashMap<String, String>();
+            // ip
+            value.put( "en", jo.getString("en") );
+            value.put( "dir", this.conexiones.get( jo.getString("en") ).get("dir") ) ;
+            value.put( "port", jo.getString("port"));
+            this.paises.put(
+                jo.getString("nombre"),
+                value
+            );
+        }
+
+        Utils.print(this.conexiones);
+        Utils.print(this.paises);
     }
 
-    public void cargarConfiguracion( String nombre_archivo )
+    private Init( String config, String nombre )
     {
-        JSONObject obj = new JSONObject( readFile(nombre_archivo) );
+        this.conexiones = new HashMap<String, Map<String, String> >();
+        this.paises = new HashMap<String, Map<String, String> >();
+
+        JSONObject obj = new JSONObject( readFile(config) );
+        getGeneral(obj);
+
+        Utils.print(Integer.parseInt(this.conexiones.get(nombre).get("port")));
+
         this.comp = new Computador(
-            obj.getInt("puerto"),
+            Integer.parseInt(this.conexiones.get(nombre).get("port")),
             obj.getInt("umbral")
         );
 
-        JSONArray ja = obj.getJSONArray("paises");
+        JSONArray ja = obj.getJSONArray("info");
 
         for( int a = 0 ; a < ja.length() ; a++ )
         {
             JSONObject jo = ja.getJSONObject(a);
             // Utils.print("leyendo nuevo pais " + jo );
-            comp.agregarPais(
-                jo.getString( "nombre" ),
-                Integer.parseInt( jo.getString( "poblacion" ) ),
-                Integer.parseInt( jo.getString( "enfermos" ) ),
-                Double.parseDouble( jo.getString( "alta_vulnerabilidad" ) ),
-                Double.parseDouble( jo.getString( "aislamiento" ) ),
-                aVecinos(jo.getJSONArray( "vecinos" )),
-                aVecinos(jo.getJSONArray( "vecinos_aereos" )),
-                jo.getInt( "port" )
-            );
+            String nombreP = jo.getString("nombre");
+            // verificar si el pais se encuentra en el computador actual
+            if ( nombre.equals( this.paises.get(nombreP).get("en") ) )
+            {
+                Utils.print("agregando " + nombreP );
+                comp.agregarPais(
+                    nombreP,
+                    Integer.parseInt( jo.getString( "poblacion" ) ),
+                    Integer.parseInt( jo.getString( "enfermos" ) ),
+                    Double.parseDouble( jo.getString( "alta_vulnerabilidad" ) ),
+                    Double.parseDouble( jo.getString( "aislamiento" ) ),
+                    aVecinos(jo.getJSONArray( "vecinos" )),
+                    aVecinos(jo.getJSONArray( "vecinos_aereos" )),
+                    Integer.parseInt( this.paises.get(nombreP).get("port") )
+                );
+            }
         }
 
         ja = obj.getJSONArray("conexiones");
@@ -74,15 +122,14 @@ public class Init{
 
         for( int a = 0 ; a < ja.length() ; a++ )
         {
-            JSONObject jo = ja.getJSONObject(a);
+            String nomP = (String) ja.get(a);
             String[] val = new String[2];
 
-            val[0] = jo.getString( "dir" );
-            val[1] = jo.getString( "port" );
+            val[0] = this.paises.get(nomP).get("dir");
+            val[1] = this.paises.get(nomP).get("port");
 
             vecinos.add(val);
         }
-
         return vecinos;
     }
 
@@ -104,7 +151,5 @@ public class Init{
         }
         return result;
     }
-
-
 }
 

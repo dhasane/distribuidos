@@ -1,0 +1,125 @@
+{
+    "umbral": 1000,
+    "conexiones": [
+        {
+            "nombre": "pc1",
+            "dir": "127.0.0.1",
+            "port" : "4321"
+        },
+        {
+            "nombre": "pc2",
+            "dir": "127.0.0.1",
+            "port" : "5678"
+        },
+        {
+            "nombre": "pc3",
+            "dir": "127.0.0.1",
+            "port" : "9876"
+        }
+    ],
+    "paises":[
+        {
+            "nombre" : "Colombia",
+            "en": "pc1",
+            "port" : "4322"
+        },
+        {
+            "nombre" : "Peru",
+            "en": "pc2",
+            "port" : "5679"
+        },
+        {
+            "nombre" : "Chile",
+            "en": "pc2",
+            "port" : "5680"
+        },
+        {
+            "nombre" : "Venezuela",
+            "en": "pc3",
+            "port" : "9877"
+        },
+        {
+            "nombre" : "Argentina",
+            "en": "pc3",
+            "port" : "9878"
+        }
+    ],
+    "info" : [
+        {
+            "nombre": "Colombia",
+            "poblacion" : "2000",
+            "enfermos": "3",
+            "alta_vulnerabilidad": "0.3",
+            "aislamiento": "0.2",
+            "vecinos": [
+                "Chile",
+                "Peru",
+                "Argentina"
+            ],
+            "vecinos_aereos": [
+                "Peru"
+            ]
+        },
+        {
+            "nombre": "Peru",
+            "poblacion" : "5000",
+            "enfermos": "0",
+            "alta_vulnerabilidad": "0.2",
+            "aislamiento": "0.1",
+            "vecinos": [
+                "Colombia",
+                "Chile"
+            ],
+            "vecinos_aereos": [
+                "Colombia",
+                "Venezuela",
+                "Argentina"
+            ]
+        },
+        {
+            "nombre": "Chile",
+            "poblacion" : "1000",
+            "enfermos": "0",
+            "alta_vulnerabilidad": "0.6",
+            "aislamiento": "0.4",
+            "vecinos": [
+                "Colombia",
+                "Peru",
+                "Argentina"
+            ],
+            "vecinos_aereos": [
+                "Colombia",
+                "Venezuela"
+            ]
+        },
+        {
+            "nombre": "Venezuela",
+            "poblacion" : "4000",
+            "enfermos": "1",
+            "alta_vulnerabilidad": "0.7",
+            "aislamiento": "0.1",
+            "vecinos": [
+                "Chile"
+            ],
+            "vecinos_aereos": [
+                "Colombia"
+            ]
+        },
+        {
+            "nombre": "Argentina",
+            "poblacion" : "3000",
+            "enfermos": "0",
+            "alta_vulnerabilidad": "0.4",
+            "aislamiento": "0.4",
+            "vecinos": [
+                "Venezuela"
+            ],
+            "vecinos_aereos": [
+                "Peru",
+                "Chile",
+                "Colombia",
+                "Venezuela"
+            ]
+        }
+    ]
+}

@@ -12,8 +12,8 @@ cleanLogs:
 
 
 1: compile
-	mvn exec:java -Dexec.args="config/c1.json"
+	mvn exec:java -Dexec.args="config/general.json pc1"
 2: compile
-	mvn exec:java -Dexec.args="config/c2.json"
+	mvn exec:java -Dexec.args="config/general.json pc2"
 3: compile
-	mvn exec:java -Dexec.args="config/c3.json"
+	mvn exec:java -Dexec.args="config/general.json pc3"

@@ -42,6 +42,7 @@ public class Broker extends Conector{
         this.cnt = cnt;
         this.umbral = umbral;
         LOGGER = Utils.getLogger(this, this.getNombre());
+        this.continuar = true;
         this.start();
     }
 
@@ -49,6 +50,7 @@ public class Broker extends Conector{
     {
         while(this.continuar)
         {
+            Utils.print("balanceando");
             balancear();
             try{
                 Thread.sleep(this.tiempoDescanso);
@@ -75,10 +77,10 @@ public class Broker extends Conector{
 
                     if (respuesta.getContenido().getClass() == PaisEnvio.class)
                     {
-                        tipo = Mensaje.agregado;
                         cnt.agregar(
                             new Pais((PaisEnvio)respuesta.getContenido())
                         );
+                        tipo = Mensaje.agregado;
                     }
 
                     break;
@@ -171,6 +173,8 @@ public class Broker extends Conector{
                     )
                 );
 
+                Utils.print("el peso de " + cliente.getPort() + " es " + respuesta);
+
                 // que no este vacio y que el contenido sea int
                 if ( respuesta != null && respuesta.getContenido().getClass() == Integer.class )
                 {
@@ -199,44 +203,43 @@ public class Broker extends Conector{
 
         int diferencia = (miPeso - peso)/2;
 
-        if ( abs(diferencia) >= this.umbral )
+        // tu que tienes un peso suficientemente distinto al mio(dentro de un umbral), te paso una de mis clases que te acerque lo mejor posible al promedio entre tu peso y mi peso
+
+        List<Integer> pesos = cnt.pesoObjetos();
+
+        int index = -1;
+        int paisMinimo = 0;
+        int poblacion;
+
+        int posicion = 0;
+        // TODO esto se podria, en vez de buscar solo uno, buscar todos
+        // los objetos que se necesiten para quedar balanceados
+        // aunque eso ya seria mas como con programacion dinamica, o algo asi
+        for(Integer pais: pesos)
         {
-            // tu que tienes un peso suficientemente distinto al mio(dentro de un umbral), te paso una de mis clases que te acerque lo mejor posible al promedio entre tu peso y mi peso
+            poblacion = diferencia - pais;
 
-            List<Integer> pesos = cnt.pesoObjetos();
-
-            int index = -1;
-            int paisMinimo = 0;
-            int poblacion;
-
-            int posicion = 0;
-            // TODO esto se podria, en vez de buscar solo uno, buscar todos
-            // los objetos que se necesiten para quedar balanceados
-            // aunque eso ya seria mas como con programacion dinamica, o algo asi
-            for(Integer pais: pesos)
+            if( abs(poblacion) < diferencia && ( index == -1 || pais < paisMinimo) )
             {
-                poblacion = diferencia - pais;
-
-                if( abs(poblacion) <= umbral && ( index == -1 || pais < paisMinimo) )
-                {
-                    paisMinimo = pais;
-                    index = posicion;
-                }
-                posicion++;
+                paisMinimo = pais;
+                index = posicion;
             }
+            posicion++;
+        }
 
-            Object obj = cnt.getObject(index);
-            if (obj != null){
-                this.con.send(
-                    cliente,
-                    new Mensaje(
-                        Mensaje.add,
-                        obj
-                    )
-                );
-                // si ya le pase o recibi una clase, no tengo que preguntarle al resto
-                return true;
-            }
+        Utils.print( "el objeto para enviar esta en el indice " + index );
+
+        Object obj = cnt.getObject(index);
+        if (obj != null){
+            this.con.send(
+                cliente,
+                new Mensaje(
+                    Mensaje.add,
+                    obj
+                )
+            );
+            // si ya le pase o recibi una clase, no tengo que preguntarle al resto
+            return true;
         }
         return false;
     }
