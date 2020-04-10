@@ -25,4 +25,9 @@ public class Respuesta{
     {
         return this.mensaje;
     }
+
+    public String toString()
+    {
+        return this.respondido ? "respondido : " + this.mensaje.toString() : "no respondido";
+    }
 }

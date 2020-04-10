@@ -49,8 +49,8 @@ public class Computador {
             prt += p.toString() + ", ";
             pesoTotal += p.getPoblacion();
         }
-        LOGGER.log(Level.INFO,  prt + " ( total : " + pesoTotal + " )" );
-        Utils.print( prt + " ( total : " + pesoTotal + " )" );
+        LOGGER.log(Level.INFO, "=====>" + prt + " ( total : " + pesoTotal + " )" );
+        Utils.print( "=====>" + prt + " ( total : " + pesoTotal + " )" );
     }
 
     // detiene el funcionamiento
@@ -61,9 +61,7 @@ public class Computador {
         LOGGER.log(Level.INFO, "desconectando computador : " + this.broker.getNombre() );
 
         this.paises.forEach( p -> {
-            p.detener();
-            // this.broker.sendRandomAdd(new PaisEnvio(p));
-            this.paises.remove(p);
+            this.broker.sendRandomAdd(eliminar(p));
         });
         this.broker.detener();
     }
@@ -123,7 +121,7 @@ public class Computador {
     // agrega un pais a la lista de paises
     public synchronized void agregar(Pais p)
     {
-        if (p != null)
+        if (p != null && !this.paises.contains(p))
         {
             LOGGER.log( Level.INFO, "agregando pais : " + p.getNombre() );
             Utils.print( "agregando pais : " + p.getNombre() );
@@ -133,16 +131,17 @@ public class Computador {
     }
 
     // elimina un pais de la lista de paises
-    private synchronized boolean eliminar(Pais p)
+    private synchronized PaisEnvio eliminar(Pais p)
     {
         if (this.paises.contains(p))
         {
-            p.interrupt();
+            // copiar antes de detener, ya que detener pierde las conexiones
+            PaisEnvio pe = p.detener();
             this.paises.remove(p);
             imprimir();
-            return true;
+            return pe;
         }
-        return false;
+        return null;
     }
 
     // consigue un objeto y lo borra
@@ -152,10 +151,7 @@ public class Computador {
         if (0 <= index && index < this.paises.size())
         {
             Pais pa = this.paises.get(index);
-            if (eliminar( pa ))
-            {
-                pe = new PaisEnvio( pa );
-            }
+            pe = eliminar( pa );
         }
         return pe;
     }

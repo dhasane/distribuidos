@@ -174,10 +174,10 @@ public class Conexiones extends Thread{
         }
         catch(ConnectException ce)
         {
-            Utils.print("conexion : " + strcon + ":" + port + " no disponible" );
+            // Utils.print("conexion : " + strcon + ":" + port + " no disponible" );
         }
         catch(UnknownHostException uhe ){
-            Utils.print("direccion no encontrada");
+            // Utils.print("direccion no encontrada");
         }
         catch (IOException e){
             e.printStackTrace();
@@ -239,9 +239,9 @@ public class Conexiones extends Thread{
     }
 
     // envia a una conexion especifica
-    public synchronized Mensaje send(Connection c, Mensaje data)
+    public synchronized void send(Connection c, Mensaje data)
     {
-        return enviar(c, data);
+        enviar(c, data);
     }
 
     // envia a todas las conexiones
@@ -258,45 +258,45 @@ public class Conexiones extends Thread{
     // espera a que se responda un mensaje con id, en caso de no ser respondido en
     // tiempo_de_espera, termina la ejecucion
     // esto porque no se puede quedar esperando para siempre :v
-    private Mensaje esperarRetornoRespuesta(String id, int tiempo_de_espera) throws TimeoutException
-    {
-        Mensaje valor = null;
-        // esto sirve para cortar el funcionamiento de algo despues de que supere un tiempo limite
-        ExecutorService es = Executors.newSingleThreadExecutor();
-        try {
-            final Future<Mensaje> f = es.submit(() -> {
+    // private Mensaje esperarRetornoRespuesta(String id, int tiempo_de_espera, Connection c) throws TimeoutException
+    // {
+    //     Mensaje valor = null;
+    //     // esto sirve para cortar el funcionamiento de algo despues de que supere un tiempo limite
+    //     ExecutorService es = Executors.newSingleThreadExecutor();
+    //     try {
+    //         es.submit(() -> {
+    //
+    //             Respuesta r = this.respuestas.get(id);
+    //             try{
+    //                 while(!r.estado())
+    //                 {
+    //                     synchronized(r)
+    //                     {
+    //                         r.wait();
+    //                     }
+    //                 }
+    //             } catch (InterruptedException e) {
+    //                 Utils.print("se ha interrumpido la espera de la respuesta");
+    //             }
+    //
+    //
+    //         }).get(tiempo_de_espera , TimeUnit.SECONDS);
+    //
+    //     } catch (TimeoutException e) {
+    //         // Utils.print("tiempo excedido en la espera de respuesta");
+    //         new TimeoutException();
+    //     } catch (ExecutionException e) {
+    //         Utils.print("se ha interrumpido la ejecucion");
+    //     } catch (InterruptedException e) {
+    //         Utils.print("se ha interrumpido la espera de la respuesta");
+    //     } finally {
+    //         es.shutdown();
+    //     }
+    //
+    //     return valor;
+    // }
 
-                Respuesta r = this.respuestas.get(id);
-                synchronized(r)
-                {
-                    do{
-                        r.wait();
-                    }while(!r.estado());
-                }
-
-                Mensaje m = r.conseguirMensaje();
-                respuestasEliminar(m);
-
-                return m;
-            });
-
-            valor = f.get(tiempo_de_espera , TimeUnit.SECONDS);
-
-        } catch (TimeoutException e) {
-            // Utils.print("tiempo excedido en la espera de respuesta");
-            new TimeoutException();
-        } catch (ExecutionException e) {
-            Utils.print("se ha interrumpido la ejecucion");
-        } catch (InterruptedException e) {
-            Utils.print("se ha interrumpido la espera de la respuesta");
-        } finally {
-            es.shutdown();
-        }
-
-        return valor;
-    }
-
-    private synchronized Mensaje enviar(Connection c, Mensaje data)
+    private synchronized void enviar(Connection c, Mensaje data)
     {
         if (data.isRequest())
             respuestasAgregar(data.getId());
@@ -304,53 +304,53 @@ public class Conexiones extends Thread{
         c.send(data);
         // Utils.print("enviando : " + data.toString() );
 
-        Mensaje retorno = null;
-        boolean exitoso = true;
-
         // en caso de ser un request, se tiene que esperar a que llegue la respuesta
         if (data.isRequest())
         {
-            int intentos = cantidad_intentos;
-            boolean seguir = true;
+            new Thread(()->{
+                int intentos = cantidad_intentos;
+                boolean seguir = true;
 
-            do{
-                try{
-                    retorno = esperarRetornoRespuesta(data.getId(), tiempo_espera);
-                    // llegar aca significa que todo corrio adecuadamente
-                    seguir = false;
-                }
-                catch(TimeoutException e)
-                {
-                    // se reduce la cantidad de intentos y se reenvia el mensaje
+                do{
                     intentos --;
                     c.send(data);
-                    Utils.print("re-enviando : " + data.toString() );
-                }
-            }while(seguir);
+                    // Utils.print("re-enviando : " + data.toString() );
+                    try{
+                        // esperarRetornoRespuesta(data.getId(), tiempo_espera, c);
+                        Thread.sleep(tiempo_espera*1000);
+                        // llegar aca significa que todo corrio adecuadamente
+                    } catch(InterruptedException ie){
+
+                    }
+                }while( !this.respuestas.get(data.getId()).estado() && intentos > 0);
+            }).start();
         }
-        return retorno;
     }
 
     public void respond(Connection c, Mensaje data)
     {
         // pero esto me permite buscar reply
         // ignorar todos los demas mensajes de este mismo id
+        // Utils.print("entra " + data.toString());
         if ( data.isRespond() )
         {
             // Utils.print(" llega respuesta : " + data.toString() );
             Respuesta r = this.respuestas.getOrDefault(data.getId(), null);
             // en caso de ya haber recibido la respuesta, esta ya habra sido manejada
             // y sera null
-            if (r != null)
+            // Utils.print( "respuesta : " + r.toString());
+            if (r != null && !r.estado())
             {
                 r.agregarRespuesta(data);;
-                synchronized(r)
-                {
-                    r.notifyAll();
-                }
+                // Utils.print("mensaje a conector");
+                cnt.respond(c, data);
             }
+            return ;
         }
-        cnt.respond(c, data);
+        else
+        {
+            cnt.respond(c, data);
+        }
         return;
     }
 }

@@ -1,5 +1,6 @@
 package virus;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +29,8 @@ public class Pais extends Conector{
 
     private Conexiones con;
 
+    private List<String[]> vecinos;
+
     public Pais(
             String nombre,
             int poblacion,
@@ -45,30 +48,40 @@ public class Pais extends Conector{
         this.alta_vulnerabilidad = alta_vulnerabilidad;
         this.aislamiento = aislamiento;
 
+        this.vecinos = new ArrayList<String[]>();
         this.con = new Conexiones(this, serverPort);
         vecinos.forEach( v -> {
             if ( v[0].length() > 0 && v[1].length() > 0 )
+            {
                 this.con.agregar(v[0], Integer.parseInt(v[1]));
+                this.vecinos.add(v);
+            }
         });
 
         this.continuar = true;
         LOGGER = Utils.getLogger(this, this.nombre);
         this.start();
+        Utils.print(" nuevo pais : " + this.prt());
     }
 
     public Pais( PaisEnvio p )
     {
+
         this.nombre = p.getNombre();
         this.poblacion = p.getPoblacion();
         this.enfermos = p.getEnfermos();
         this.alta_vulnerabilidad = p.getAltaVulnerabilidad();
         this.aislamiento = p.getAislamiento();
 
+        this.vecinos = new ArrayList<String[]>();
         // abre un puerto de servidor en un puerto cualquiera
         this.con = new Conexiones(this);
         p.getVecinos().forEach( v -> {
             if ( v[0].length() > 0 && v[1].length() > 0 )
+            {
                 this.con.agregar(v[0], Integer.parseInt(v[1]));
+                this.vecinos.add(v);
+            }
         });
 
         this.continuar = true;
@@ -80,12 +93,13 @@ public class Pais extends Conector{
 
     public List<String[]> getVecinos()
     {
-        return this.con.getConexiones();
+        // return this.con.getConexiones();
+        return this.vecinos;
     }
 
     public String prt()
     {
-        return this.nombre + " : (" + this.enfermos + "/" + this.poblacion + ")";
+        return this.nombre + " : (" + this.enfermos + "/" + this.poblacion + ")" + this.con.prt();
     }
 
     public void run()
@@ -103,6 +117,7 @@ public class Pais extends Conector{
                 );
                 LOGGER.log(Level.INFO, "pasa un dia : " + prt() );
                 Utils.print( "pasa un dia : " + prt() );
+                Utils.print( "en " + this.nombre + " hay " + this.con.prt() + " conexiones" );
                 Thread.sleep(this.poblacion);
             }
             catch(InterruptedException ie)
@@ -111,11 +126,46 @@ public class Pais extends Conector{
             }
         }
         LOGGER.log(Level.INFO, "detenido" );
+        synchronized(this.con)
+        {
+            this.con.notify();
+        }
     }
 
-    public void detener()
+    public synchronized PaisEnvio detener()
     {
+        List<String[]> vecinos = this.getVecinos();
+
+        vecinos.forEach( v -> {
+            if ( v[0].length() > 0 && v[1].length() > 0 )
+                Utils.print(v[0] + ":" + Integer.parseInt(v[1]));
+        });
+
         this.continuar = false;
+        this.con.detener();
+
+        try{
+            synchronized(this.con)
+            {
+                this.con.wait();
+            }
+        } catch (InterruptedException ie) {
+            this.continuar = false;
+            vecinos.forEach( v -> {
+                if ( v[0].length() > 0 && v[1].length() > 0 )
+                    this.con.agregar(v[0], Integer.parseInt(v[1]));
+            });
+            return null;
+        }
+
+        return new PaisEnvio(
+            this.getNombre(),
+            this.getPoblacion(),
+            this.getEnfermos(),
+            this.getAltaVulnerabilidad(),
+            this.getAislamiento(),
+            vecinos
+        );
     }
 
     // da un paso de tiempo
@@ -230,8 +280,8 @@ public class Pais extends Conector{
     @Override
     public void respond(Connection c, Mensaje respuesta)
     {
-        LOGGER.log( Level.INFO, "mensaje entrante: " + respuesta.toString() );
-        // Utils.print(  "mensaje entrante: " + respuesta.toString() );
+        LOGGER.log( Level.INFO, "mensaje entrante a pais: " + respuesta.toString() );
+        // Utils.print(  "mensaje entrante a pais: " + respuesta.toString() );
 
         if(respuesta.isRequest())
         {

@@ -74,6 +74,7 @@ public class Init{
 
         Utils.print(Integer.parseInt(this.conexiones.get(nombre).get("port")));
 
+        String thisPort = this.conexiones.get(nombre).get("port");
         this.comp = new Computador(
             Integer.parseInt(this.conexiones.get(nombre).get("port")),
             obj.getInt("umbral")
@@ -108,10 +109,13 @@ public class Init{
         for( int a = 0 ; a < ja.length() ; a++ )
         {
             JSONObject jo = ja.getJSONObject(a);
-            this.comp.agregarConexion(
-                jo.getString("dir"),
-                jo.getInt("port")
-            );
+            if( jo.getString("port") != thisPort)
+            {
+                this.comp.agregarConexion(
+                    jo.getString("dir"),
+                    Integer.parseInt( jo.getString("port") )
+                );
+            }
         }
         comp.imprimir();
     }
@@ -124,6 +128,8 @@ public class Init{
         {
             String nomP = (String) ja.get(a);
             String[] val = new String[2];
+
+            Utils.print( nomP + " => " + this.paises.get(nomP).get("dir") + ":" + this.paises.get(nomP).get("port"));
 
             val[0] = this.paises.get(nomP).get("dir");
             val[1] = this.paises.get(nomP).get("port");

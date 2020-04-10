@@ -31,6 +31,23 @@ public class PaisEnvio implements Serializable{
         this.vecinos = p.getVecinos();
     }
 
+    public PaisEnvio(
+        String nombre,
+        int poblacion,
+        int enfermos,
+        double vulnerabilidad,
+        double aislamiento,
+        List<String[]> vecinos
+    )
+    {
+        this.nombre = nombre;
+        this.poblacion = poblacion;
+        this.enfermos = enfermos;
+        this.alta_vulnerabilidad = vulnerabilidad;
+        this.aislamiento = aislamiento;
+        this.vecinos = vecinos;
+    }
+
     public List<String[]> getVecinos()
     {
         return this.vecinos;

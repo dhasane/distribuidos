@@ -33,11 +33,14 @@ public class Broker extends Conector{
     private int umbral; // umbral aceptable de diferencia entre pesos de distintos
     private Conexiones con;
     private boolean continuar;
+    private Map<Connection, Integer> pesos;
 
-    private int tiempoDescanso = 30000; // cada 30 segundos
+    // private int tiempoDescanso = 30000; // cada 30 segundos
+    private int tiempoDescanso = 5000; // cada 30 segundos
 
     public Broker(Computador cnt, int serverPort, int umbral)
     {
+        this.pesos = new HashMap<Connection, Integer>();
         this.con = new Conexiones(this, serverPort);
         this.cnt = cnt;
         this.umbral = umbral;
@@ -50,8 +53,6 @@ public class Broker extends Conector{
     {
         while(this.continuar)
         {
-            Utils.print("balanceando");
-            balancear();
             try{
                 Thread.sleep(this.tiempoDescanso);
             }
@@ -59,13 +60,25 @@ public class Broker extends Conector{
             {
 
             }
+
+            Utils.print("balanceando");
+            Utils.print(this.con.prt());
+            balancear();
+            send(
+                new Mensaje(
+                    Mensaje.weight,
+                    "oiga su peso"
+                )
+            );
+
         }
     }
 
     @Override
     public void respond(Connection c, Mensaje respuesta)
     {
-        LOGGER.log( Level.INFO, "mensaje entrante: " + respuesta.toString() );
+        LOGGER.log( Level.INFO, "mensaje entrante a broker: " + respuesta.toString() );
+        // Utils.print( "mensaje entrante a broker: " + respuesta.toString() );
 
         if(respuesta.isRequest())
         {
@@ -105,6 +118,15 @@ public class Broker extends Conector{
         }
         else if(respuesta.isRespond())
         {
+
+            if (respuesta.getTipo() == Mensaje.info && respuesta.getContenido().getClass() == Integer.class)
+            {
+                Utils.print("se agrega el peso de " + c.getPort() + " en " + respuesta.getContenido() );
+                this.pesos.put(
+                    c,
+                    (int) respuesta.getContenido()
+                );
+            }
             // esto aca no es realmente necesario, este tipo de mensaje es
             // mas para evitar reenviar mensajes
 
@@ -126,7 +148,6 @@ public class Broker extends Conector{
     public void nuevaConexion(Connection c)
     {
         this.con.agregar(c);
-        balancear();
     }
 
     public void send(Mensaje m)
@@ -161,24 +182,15 @@ public class Broker extends Conector{
         do{
             terminar = false;
             int miPeso = cnt.peso();
-            Mensaje respuesta = null;
+            int peso;
             for( Connection cliente: this.con.getClientes() )
             {
-
-                respuesta = this.con.send(
-                    cliente,
-                    new Mensaje(
-                        Mensaje.weight,
-                        "oiga su peso" // el contenido no importa en este caso
-                    )
-                );
-
-                Utils.print("el peso de " + cliente.getPort() + " es " + respuesta);
+                peso = this.pesos.getOrDefault(cliente, -1);
+                // Utils.print("el peso de " + cliente.getPort() + " es " + peso);
 
                 // que no este vacio y que el contenido sea int
-                if ( respuesta != null && respuesta.getContenido().getClass() == Integer.class )
+                if ( peso != -1 )
                 {
-                    int peso = (int) respuesta.getContenido();
                     terminar |= balancearCliente(cliente, miPeso, peso);
                 }
 
@@ -219,7 +231,9 @@ public class Broker extends Conector{
         {
             poblacion = diferencia - pais;
 
-            if( abs(poblacion) < diferencia && ( index == -1 || pais < paisMinimo) )
+            // Utils.print("nueva posible poblacion : " + poblacion + " siendo la actual : " + diferencia + " > " + poblacion );
+
+            if( abs(poblacion) < abs(diferencia) && ( index == -1 || pais < paisMinimo) )
             {
                 paisMinimo = pais;
                 index = posicion;
@@ -227,10 +241,11 @@ public class Broker extends Conector{
             posicion++;
         }
 
-        Utils.print( "el objeto para enviar esta en el indice " + index );
+        // Utils.print( "el objeto para enviar esta en el indice " + index );
 
         Object obj = cnt.getObject(index);
         if (obj != null){
+            // Utils.print( ((PaisEnvio) obj ).toString() );
             this.con.send(
                 cliente,
                 new Mensaje(
