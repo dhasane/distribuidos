@@ -1,6 +1,6 @@
 package envio;
 import java.io.Serializable;
-import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -16,7 +16,7 @@ public class PaisEnvio implements Serializable{
     private int enfermos;
     private boolean continuar;
 
-    private List<String[]> vecinos;
+    private Map<String, String[]> vecinos;
 
     private double alta_vulnerabilidad;
     private double aislamiento;
@@ -37,7 +37,7 @@ public class PaisEnvio implements Serializable{
         int enfermos,
         double vulnerabilidad,
         double aislamiento,
-        List<String[]> vecinos
+        Map<String, String[]> vecinos
     )
     {
         this.nombre = nombre;
@@ -48,7 +48,7 @@ public class PaisEnvio implements Serializable{
         this.vecinos = vecinos;
     }
 
-    public List<String[]> getVecinos()
+    public Map<String, String[]> getVecinos()
     {
         return this.vecinos;
     }

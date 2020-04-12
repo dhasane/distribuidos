@@ -1,7 +1,9 @@
 package virus;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.FileHandler;
@@ -12,8 +14,9 @@ import red.Mensaje;
 import red.Conexiones;
 import red.Connection;
 import red.Conector;
-import envio.PaisEnvio;
+import envio.EstadoPais;
 // aqui se va a tener la informacion de un pais
+import envio.PaisEnvio;
 
 public class Pais extends Conector{
     private Logger LOGGER;
@@ -29,7 +32,8 @@ public class Pais extends Conector{
 
     private Conexiones con;
 
-    private List<String[]> vecinos;
+    // la llave es el nombre y el contenido es como [direccion, puerto]
+    private Map<String, String[]> vecinos;
 
     public Pais(
             String nombre,
@@ -48,15 +52,21 @@ public class Pais extends Conector{
         this.alta_vulnerabilidad = alta_vulnerabilidad;
         this.aislamiento = aislamiento;
 
-        this.vecinos = new ArrayList<String[]>();
+        this.vecinos = new HashMap<String, String[]>();
         this.con = new Conexiones(this, serverPort);
-        vecinos.forEach( v -> {
+        for( String[] v : vecinos )
+        {
             if ( v[0].length() > 0 && v[1].length() > 0 )
             {
-                this.con.agregar(v[0], Integer.parseInt(v[1]));
-                this.vecinos.add(v);
+                String[] vv = new String[2];
+                vv[0] = v[1];
+                vv[1] = v[2];
+                // Utils.print( v[0] + " -> " + vv[0] + ":" + Integer.parseInt(vv[1]));
+
+                this.vecinos.put(v[0], vv);
+                this.con.agregar(v[1], Integer.parseInt(v[2]));
             }
-        });
+        }
 
         this.continuar = true;
         LOGGER = Utils.getLogger(this, this.nombre);
@@ -73,16 +83,18 @@ public class Pais extends Conector{
         this.alta_vulnerabilidad = p.getAltaVulnerabilidad();
         this.aislamiento = p.getAislamiento();
 
-        this.vecinos = new ArrayList<String[]>();
+        // Utils.print("----------------------------------------------------------------------------------------------------------------");
+
         // abre un puerto de servidor en un puerto cualquiera
         this.con = new Conexiones(this);
-        p.getVecinos().forEach( v -> {
-            if ( v[0].length() > 0 && v[1].length() > 0 )
-            {
-                this.con.agregar(v[0], Integer.parseInt(v[1]));
-                this.vecinos.add(v);
-            }
-        });
+        this.vecinos = p.getVecinos();
+        for(Map.Entry<String, String[]> entry: this.vecinos.entrySet() )
+        {
+            String pais = entry.getKey(); // este es el nombre
+            String[] vecino = entry.getValue();
+            this.con.agregar(vecino[0], Integer.parseInt(vecino[1]));
+            // Utils.print( pais + " -> " + vecino[0] + ":" + Integer.parseInt(vecino[1]));
+        }
 
         this.continuar = true;
         LOGGER = Utils.getLogger(this, this.nombre);
@@ -91,7 +103,7 @@ public class Pais extends Conector{
 
     }
 
-    public List<String[]> getVecinos()
+    public Map<String, String[]> getVecinos()
     {
         // return this.con.getConexiones();
         return this.vecinos;
@@ -99,7 +111,7 @@ public class Pais extends Conector{
 
     public String prt()
     {
-        return this.nombre + " : (" + this.enfermos + "/" + this.poblacion + ")" + this.con.prt();
+        return this.nombre + " : (" + this.enfermos + "/" + this.poblacion + ") " + this.con.prt();
     }
 
     public void run()
@@ -112,12 +124,16 @@ public class Pais extends Conector{
                 this.con.send(
                     new Mensaje(
                         Mensaje.estado,
-                        new PaisEnvio(this)
+                        new EstadoPais(
+                            this.nombre,
+                            this.poblacion,
+                            this.enfermos,
+                            this.con.getAddr()
+                        )
                     )
                 );
                 LOGGER.log(Level.INFO, "pasa un dia : " + prt() );
                 Utils.print( "pasa un dia : " + prt() );
-                Utils.print( "en " + this.nombre + " hay " + this.con.prt() + " conexiones" );
                 Thread.sleep(this.poblacion);
             }
             catch(InterruptedException ie)
@@ -134,12 +150,14 @@ public class Pais extends Conector{
 
     public synchronized PaisEnvio detener()
     {
-        List<String[]> vecinos = this.getVecinos();
+        Map<String, String[]> vecinosN = this.getVecinos();
 
-        vecinos.forEach( v -> {
-            if ( v[0].length() > 0 && v[1].length() > 0 )
-                Utils.print(v[0] + ":" + Integer.parseInt(v[1]));
-        });
+        for(Map.Entry<String, String[]> entry: vecinosN.entrySet() )
+        {
+            String pais = entry.getKey();
+            String[] vecino = entry.getValue();
+            Utils.print( pais + " -> " + vecino[0] + ":" + Integer.parseInt(vecino[1]));
+        }
 
         this.continuar = false;
         this.con.detener();
@@ -151,10 +169,11 @@ public class Pais extends Conector{
             }
         } catch (InterruptedException ie) {
             this.continuar = false;
-            vecinos.forEach( v -> {
-                if ( v[0].length() > 0 && v[1].length() > 0 )
-                    this.con.agregar(v[0], Integer.parseInt(v[1]));
-            });
+            for(Map.Entry<String, String[]> entry: vecinosN.entrySet() )
+            {
+                String[] vecino = entry.getValue();
+                this.con.agregar(vecino[0], Integer.parseInt(vecino[1]));
+            }
             return null;
         }
 
@@ -164,7 +183,7 @@ public class Pais extends Conector{
             this.getEnfermos(),
             this.getAltaVulnerabilidad(),
             this.getAislamiento(),
-            vecinos
+            vecinosN
         );
     }
 
@@ -280,6 +299,10 @@ public class Pais extends Conector{
     @Override
     public void respond(Connection c, Mensaje respuesta)
     {
+        // por si acaso, aunque no deberia suceder
+        if (respuesta == null)
+            return;
+
         LOGGER.log( Level.INFO, "mensaje entrante a pais: " + respuesta.toString() );
         // Utils.print(  "mensaje entrante a pais: " + respuesta.toString() );
 
@@ -289,10 +312,15 @@ public class Pais extends Conector{
             Object contenido = null;
 
             // TODO hacer que esto sea con un objeto mas liviano que todo el estado del pais
-            if ( respuesta.getTipo() == Mensaje.estado && respuesta.getContenido().getClass() == PaisEnvio.class)
+            if ( respuesta.getTipo() == Mensaje.estado && respuesta.getContenido().getClass() == EstadoPais.class)
             {
-                PaisEnvio pe = (PaisEnvio) respuesta.getContenido();
+                EstadoPais pe = (EstadoPais) respuesta.getContenido();
                 // Utils.print("en " + pe.getNombre() + " hay " + pe.getEnfermos() + "/" + pe.getPoblacion() );
+
+                this.vecinos.put(
+                    pe.getNombre(),
+                    pe.getDireccion()
+                );
                 if  ( pe.getEnfermos() > 0 )
                 {
                     // agregarEnfermos();

@@ -121,7 +121,13 @@ public class Computador {
     // agrega un pais a la lista de paises
     public synchronized void agregar(Pais p)
     {
-        if (p != null && !this.paises.contains(p))
+        boolean encontrado = false;
+        for(Pais pa: this.paises)
+        {
+            encontrado |= pa.getNombre() == p.getNombre();
+        }
+
+        if (p != null && !encontrado)
         {
             LOGGER.log( Level.INFO, "agregando pais : " + p.getNombre() );
             Utils.print( "agregando pais : " + p.getNombre() );

@@ -199,12 +199,30 @@ public class Conexiones extends Thread{
     // retorna un string para imprimir
     public synchronized String prt()
     {
-        String prt = this.clientes.size() + " > ";
+        String prt = this.clientes.size() + " > [";
+        boolean primero = true;
         for( Connection c : this.clientes )
         {
+            if (primero)
+            {
+                primero = false;
+            }
+            else
+            {
+                prt += ", ";
+            }
             prt += c.getAddr() + ":" + c.getPort();
         }
-        return prt;
+        return prt + "]";
+    }
+
+    public String[] getAddr()
+    {
+        String[] addr = new String[2];
+        addr[0] = this.listenSocket.getInetAddress().getHostAddress().toString();
+        addr[1] = String.valueOf( this.listenSocket.getLocalPort() );
+
+        return addr;
     }
 
     public void sendRandomAdd(Object obj)

@@ -127,12 +127,13 @@ public class Init{
         for( int a = 0 ; a < ja.length() ; a++ )
         {
             String nomP = (String) ja.get(a);
-            String[] val = new String[2];
+            String[] val = new String[3];
 
             Utils.print( nomP + " => " + this.paises.get(nomP).get("dir") + ":" + this.paises.get(nomP).get("port"));
 
-            val[0] = this.paises.get(nomP).get("dir");
-            val[1] = this.paises.get(nomP).get("port");
+            val[0] = nomP;
+            val[1] = this.paises.get(nomP).get("dir");
+            val[2] = this.paises.get(nomP).get("port");
 
             vecinos.add(val);
         }
