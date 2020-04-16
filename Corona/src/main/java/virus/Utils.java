@@ -25,7 +25,8 @@ public class Utils{
                 private final String PATTERN = "yyyy-MM-dd' 'HH:mm:ss"; // no se que es esto -> .SSSXXX";
 
                 @Override
-                public String format(final LogRecord record) {
+                public String format(final LogRecord record)
+                {
                     return String.format(
                             "%1$s %2$-7s %3$s\n",
                             new SimpleDateFormat(PATTERN).format(
@@ -35,14 +36,9 @@ public class Utils{
             });
             log.setUseParentHandlers(false);
             log.addHandler(fh);
-        }
-        catch(IOException e)
-        {
+        } catch(IOException e) {
             e.printStackTrace();
         }
-
         return log;
     }
-
-
 }

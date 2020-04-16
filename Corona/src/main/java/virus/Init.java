@@ -22,9 +22,7 @@ public class Init{
             String nombre = args[1];
             Utils.print("iniciando con archivo de configuracion : " + config + " con nombre : " + nombre);
             new Init(config, nombre);
-        }
-        else
-        {
+        } else {
             Utils.print("por favor espeficiar archivo de configuracion y nombre");
         }
     }
@@ -45,12 +43,11 @@ public class Init{
         }
 
         JSONArray jap = json.getJSONArray("paises");
-
         for( int a = 0 ; a < jap.length() ; a++ )
         {
             JSONObject jo = jap.getJSONObject(a);
             Map<String, String> value = new HashMap<String, String>();
-            // ip
+
             value.put( "en", jo.getString("en") );
             value.put( "dir", this.conexiones.get( jo.getString("en") ).get("dir") ) ;
             value.put( "port", jo.getString("port"));
@@ -59,9 +56,6 @@ public class Init{
                 value
             );
         }
-
-        // Utils.print(this.conexiones);
-        // Utils.print(this.paises);
     }
 
     private Init( String config, String nombre )
@@ -71,8 +65,6 @@ public class Init{
 
         JSONObject obj = new JSONObject( readFile(config) );
         getGeneral(obj);
-
-        // Utils.print(Integer.parseInt(this.conexiones.get(nombre).get("port")));
 
         String thisPort = this.conexiones.get(nombre).get("port");
         this.comp = new Computador(
@@ -84,12 +76,10 @@ public class Init{
         for( int a = 0 ; a < ja.length() ; a++ )
         {
             JSONObject jo = ja.getJSONObject(a);
-            // Utils.print("leyendo nuevo pais " + jo );
             String nombreP = jo.getString("nombre");
             // verificar si el pais se encuentra en el computador actual
             if ( nombre.equals( this.paises.get(nombreP).get("en") ) )
             {
-                // Utils.print("agregando " + nombreP );
                 comp.agregarPais(
                     nombreP,
                     Integer.parseInt( jo.getString( "poblacion" ) ),
@@ -126,8 +116,6 @@ public class Init{
         {
             String nomP = (String) ja.get(a);
             String[] val = new String[3];
-
-            // Utils.print( nomP + " => " + this.paises.get(nomP).get("dir") + ":" + this.paises.get(nomP).get("port"));
 
             val[0] = nomP;
             val[1] = this.paises.get(nomP).get("dir");

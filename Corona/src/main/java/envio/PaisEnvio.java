@@ -6,7 +6,6 @@ import java.util.concurrent.TimeUnit;
 
 import virus.*;
 
-// aqui se va a tener la informacion de un pais
 public class PaisEnvio implements Serializable{
 
     private static final long serialVersionUID = 129329749L;

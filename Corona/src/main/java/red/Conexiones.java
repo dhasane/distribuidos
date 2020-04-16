@@ -26,6 +26,7 @@ public class Conexiones extends Thread{
 
     private Logger LOGGER;
 
+    // receptor final de los mensajes
     private Conector cnt;
 
     // hilo/conexiones
@@ -35,13 +36,11 @@ public class Conexiones extends Thread{
 
     // reintentos/reenvios
     private final int cantidad_intentos = 5;
-    // tiempo de espera en segundos para las respuestas
-    private final int tiempo_espera = 1; // esto son segundos
+    private final int tiempo_espera = 1; // tiempo de espera en segundos para las respuestas en segundos
 
     // respuestas
     private Map<String , Boolean> respuestas;
     private List<Respuesta> limpiar; // respuestas a limpiar
-
     private Thread limpieza; // hilo que se encarga de la limpieza de respuestas
 
     public Conexiones(Conector cnt, int serverPort)
@@ -56,9 +55,7 @@ public class Conexiones extends Thread{
             this.continuar = true;
             LOGGER = Utils.getLogger(this, this.getNombre() + ":" + cnt.getNombre());
             this.start();
-        }
-        catch(IOException ioe )
-        {
+        } catch(IOException ioe ) {
             ioe.printStackTrace();
         }
     }
@@ -73,9 +70,7 @@ public class Conexiones extends Thread{
             this.continuar = true;
             LOGGER = Utils.getLogger(this, this.getNombre());
             this.start();
-        }
-        catch(IOException ioe )
-        {
+        } catch(IOException ioe ) {
             ioe.printStackTrace();
         }
     }
@@ -100,8 +95,8 @@ public class Conexiones extends Thread{
     {
         try{
             while(continuar) {
-                //Esperar en modo escucha al cliente
-                //Establecer conexion con el socket del cliente(Hostname, Puerto)
+                // Esperar en modo escucha al cliente
+                // Establecer conexion con el socket del cliente(Hostname, Puerto)
                 // Escucha nuevo cliente y agrega en lista
                 cnt.nuevaConexion(
                         new Connection( this, listenSocket.accept() )
@@ -114,9 +109,7 @@ public class Conexiones extends Thread{
         {
             try{
                 this.listenSocket.close();
-            }
-            catch(IOException e)
-            {}
+            } catch(IOException e) {}
 
             LOGGER.log(Level.INFO, "cerrando puerto : " + this.getNombre() );
         }
@@ -129,9 +122,7 @@ public class Conexiones extends Thread{
         this.limpieza.interrupt();
         try{
             this.listenSocket.close();
-        }
-        catch(IOException e)
-        {
+        } catch(IOException e) {
             e.printStackTrace();
         }
         synchronized(this.clientes)
@@ -173,15 +164,11 @@ public class Conexiones extends Thread{
                     new Socket(host, port)
                 )
             );
-        }
-        catch(ConnectException ce)
-        {
+        } catch(ConnectException ce) {
             // Utils.print("conexion : " + strcon + ":" + port + " no disponible" );
-        }
-        catch(UnknownHostException uhe ){
+        } catch(UnknownHostException uhe ) {
             // Utils.print("direccion no encontrada");
-        }
-        catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return ret;
@@ -208,9 +195,7 @@ public class Conexiones extends Thread{
             if (primero)
             {
                 primero = false;
-            }
-            else
-            {
+            } else {
                 prt += ", ";
             }
             prt += c.getAddr() + ":" + c.getPort();
@@ -338,9 +323,7 @@ public class Conexiones extends Thread{
                     try{
                         Thread.sleep( this.limpiar.get(0).getTiempo() );
                         eliminarRespuesta();
-                    }
-                    catch (InterruptedException e)
-                    {
+                    } catch (InterruptedException e) {
                         break;
                     }
                 }
@@ -394,9 +377,7 @@ public class Conexiones extends Thread{
             contestar(data.getId());
             cnt.respond(c, data);
             return ;
-        }
-        else
-        {
+        } else {
             contestar(data.getId());
             cnt.respond(c, data);
         }

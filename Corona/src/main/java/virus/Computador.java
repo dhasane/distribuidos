@@ -42,7 +42,6 @@ public class Computador {
     public String imprimir()
     {
         String prt = broker.getNombre() + " -> ";
-
         int pesoTotal = 0;
         for(Pais p: this.paises)
         {
@@ -140,7 +139,6 @@ public class Computador {
     {
         if (this.paises.contains(p))
         {
-            // copiar antes de detener, ya que detener pierde las conexiones
             PaisEnvio pe = p.detener();
             this.paises.remove(p);
             Utils.print( imprimir() );

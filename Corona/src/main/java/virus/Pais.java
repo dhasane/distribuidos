@@ -130,9 +130,7 @@ public class Pais extends Conector{
                 LOGGER.log(Level.INFO, "pasa un dia : " + prt() );
                 Utils.print( "pasa un dia : " + prt() );
                 Thread.sleep(this.poblacion / 100 );
-            }
-            catch(InterruptedException ie)
-            {
+            } catch(InterruptedException ie) {
                 continuar = false;
             }
         }
@@ -290,7 +288,6 @@ public class Pais extends Conector{
         return this.alta_vulnerabilidad;
     }
 
-
     @Override
     public void respond(Connection c, Mensaje respuesta)
     {
@@ -299,7 +296,6 @@ public class Pais extends Conector{
             return;
 
         LOGGER.log( Level.INFO, "mensaje entrante a pais: " + respuesta.toString() );
-        // Utils.print(  "mensaje entrante a pais: " + respuesta.toString() );
 
         if(respuesta.isRequest())
         {
@@ -335,13 +331,9 @@ public class Pais extends Conector{
                     contenido
                 )
             );
-        }
-        else if(respuesta.isRespond())
-        {
+        } else if(respuesta.isRespond()) {
             // esto aca no es realmente necesario, este tipo de mensaje es
             // mas para evitar reenviar mensajes
-
-            // Utils.print("lega objetoooooooooo " + respuesta.toString());
 
             // en teoria aca se deberia enviar un accept
             // pero no los estoy manejando

@@ -38,7 +38,7 @@ public class Connection extends Thread{
             in  = new ObjectInputStream(clientSocket.getInputStream()); //Canal de entrada
             this.continuar = true;
             this.start(); //hilo
-        } catch(IOException e){
+        } catch(IOException e) {
             System.out.println("Connection:"+e.getMessage());
             e.printStackTrace();
         }
@@ -73,18 +73,18 @@ public class Connection extends Thread{
                     bro.respond(this, data);
                 }
             }
-        } catch(SocketException e){
-        } catch(ClassNotFoundException e){
+        } catch(SocketException e) {
+        } catch(ClassNotFoundException e) {
             // e.printStackTrace();
-        } catch(EOFException e){
+        } catch(EOFException e) {
             // System.out.println("EOF:"+e.getMessage());
-        } catch(IOException e){
+        } catch(IOException e) {
             // System.out.println("readline:"+e.getMessage());
         }
         finally{
             try {
                 clientSocket.close();
-            }catch (IOException e){
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -97,9 +97,7 @@ public class Connection extends Thread{
         this.continuar = false;
         try{
             this.clientSocket.close();
-        }
-        catch(IOException e)
-        {
+        } catch(IOException e) {
             e.printStackTrace();
         }
     }
@@ -112,9 +110,9 @@ public class Connection extends Thread{
         try{
             out.writeObject(data);
             sent = true;
-        } catch(SocketException e){
+        } catch(SocketException e) {
             Utils.print("conexion cerrada");
-        } catch(IOException e){
+        } catch(IOException e) {
             System.out.println("readline:"+e.getMessage());
             e.printStackTrace();
         }

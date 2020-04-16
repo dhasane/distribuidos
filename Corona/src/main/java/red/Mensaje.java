@@ -34,7 +34,6 @@ public class Mensaje implements Serializable{
 
     static DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
 
-
     public Mensaje(double tipo, Object contenido)
     {
         // usar la fecha como id
@@ -69,23 +68,17 @@ public class Mensaje implements Serializable{
 
     public boolean isSaludo()
     {
-        boolean ans = ((int) this.tipo) == saludo;
-        // Utils.print("mensaje es " + this.tipo + " <-> " + saludo + " => " + ( ans? "1":"0") );
-        return ans;
+        return ((int) this.tipo) == saludo;
     }
 
     public boolean isRequest()
     {
-        boolean ans = ((int) this.tipo) == request;
-        // Utils.print("mensaje es " + this.tipo + " <-> " + request + " => " + ( ans? "1":"0") );
-        return ans;
+        return ((int) this.tipo) == request;
     }
 
     public boolean isRespond()
     {
-        boolean ans = ((int) this.tipo) == respond;
-        // Utils.print("mensaje es " + this.tipo + " <-> " + respond + " => " + ( ans? "1":"0") );
-        return ans;
+        return ((int) this.tipo) == respond;
     }
 
     public Object getContenido()

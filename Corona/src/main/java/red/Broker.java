@@ -64,16 +64,11 @@ public class Broker extends Conector{
             );
             try{
                 Thread.sleep(this.tiempoDescanso);
-            }
-            catch(InterruptedException ie)
-            {
-
-            }
+            } catch(InterruptedException ie) { }
 
             Utils.print("balanceando " + this.con.prt());
             balancear();
             Utils.print( this.cnt.imprimir() );
-
         }
     }
 
@@ -81,7 +76,6 @@ public class Broker extends Conector{
     public void respond(Connection c, Mensaje respuesta)
     {
         LOGGER.log( Level.INFO, "mensaje entrante a broker: " + respuesta.toString() );
-        // Utils.print( "mensaje entrante a broker: " + respuesta.toString() );
 
         if(respuesta.isRequest())
         {
@@ -118,10 +112,7 @@ public class Broker extends Conector{
                     contenido
                 )
             );
-        }
-        else if(respuesta.isRespond())
-        {
-
+        } else if(respuesta.isRespond()) {
             if (respuesta.getTipo() == Mensaje.info && respuesta.getContenido().getClass() == Integer.class)
             {
                 Utils.print("se agrega el peso de " + c.getPort() + " en " + respuesta.getContenido() );
@@ -130,13 +121,6 @@ public class Broker extends Conector{
                     (int) respuesta.getContenido()
                 );
             }
-            // esto aca no es realmente necesario, este tipo de mensaje es
-            // mas para evitar reenviar mensajes
-
-            // Utils.print("lega objetoooooooooo " + respuesta.toString());
-
-            // en teoria aca se deberia enviar un accept
-            // pero no los estoy manejando
         }
 
         // por el momento no se usan accept
@@ -178,36 +162,26 @@ public class Broker extends Conector{
     // tal vez seria mejor preguntarles a todos el promedio y despues si trabajar sobre eso
     private void balancear()
     {
-        // si se balancea, puede volver a intentar balancear
         boolean terminar;
 
-        // tengo este nuevo peso
-        // ustedes cuanto peso tienen?
-        do{
-            terminar = false;
-            int miPeso = cnt.peso();
-            int peso;
-            for( Connection cliente: this.con.getClientes() )
+        terminar = false;
+        int miPeso = cnt.peso();
+        int peso;
+
+        // tengo este peso, ustedes cuanto peso tienen?
+        for( Connection cliente: this.con.getClientes() )
+        {
+            peso = this.pesos.getOrDefault(cliente, -1);
+
+            if ( peso != -1 )
             {
-                peso = this.pesos.getOrDefault(cliente, -1);
-                // Utils.print("el peso de " + cliente.getPort() + " es " + peso);
-
-                // que no este vacio y que el contenido sea int
-                if ( peso != -1 )
-                {
-                    terminar |= balancearCliente(cliente, miPeso, peso);
-                }
-
-                // no revisa al resto de clientes
-                if (terminar) break;
+                terminar |= balancearCliente(cliente, miPeso, peso);
             }
-            // en caso de haber podido balancear exitosamente, reintenta
-            // ya que al haber balanceado, podria tener mas objetos para balancear
-        }while(terminar);
-        // esto se podria hacer con programacion dinamica, o algo asi, pero seria
-        // ya demasiado esfuerzo
-    }
 
+            // no revisa al resto de clientes
+            if (terminar) break;
+        }
+    }
 
     // saca el valor absoluto
     private int abs(int num) {
@@ -235,8 +209,6 @@ public class Broker extends Conector{
         {
             poblacion = diferencia - pais;
 
-            // Utils.print("nueva posible poblacion : " + poblacion + " siendo la actual : " + diferencia + " > " + poblacion );
-
             if( abs(poblacion) < abs(diferencia) && ( index == -1 || pais < paisMinimo) )
             {
                 paisMinimo = pais;
@@ -245,11 +217,9 @@ public class Broker extends Conector{
             posicion++;
         }
 
-        // Utils.print( "el objeto para enviar esta en el indice " + index );
-
         Object obj = cnt.getObject(index);
-        if (obj != null){
-            // Utils.print( ((PaisEnvio) obj ).toString() );
+        if (obj != null)
+        {
             this.con.send(
                 cliente,
                 new Mensaje(
