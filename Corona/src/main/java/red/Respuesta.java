@@ -2,32 +2,22 @@ package red;
 
 public class Respuesta{
 
-    private boolean respondido;
-    private Mensaje mensaje;
-    public Respuesta()
+    private String id;
+    private int tiempo_a_eliminar;
+
+    Respuesta(String id, int t)
     {
-        this.respondido = false;
-        this.mensaje = null;
+        this.tiempo_a_eliminar = t;
+        this.id = id;
     }
 
-    public void agregarRespuesta(Mensaje m)
+    public int getTiempo()
     {
-        this.respondido = true;
-        this.mensaje = m;
+        return this.tiempo_a_eliminar;
     }
 
-    public boolean estado()
+    public String getId()
     {
-        return this.respondido;
-    }
-
-    public Mensaje conseguirMensaje()
-    {
-        return this.mensaje;
-    }
-
-    public String toString()
-    {
-        return this.respondido ? "respondido : " + this.mensaje.toString() : "no respondido";
+        return this.id;
     }
 }

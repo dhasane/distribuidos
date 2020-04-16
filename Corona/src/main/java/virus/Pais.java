@@ -42,7 +42,6 @@ public class Pais extends Conector{
             double alta_vulnerabilidad,
             double aislamiento,
             List<String[]> vecinos,
-            List<String[]> vecinosAereos,
             int serverPort
         )
     {
@@ -61,7 +60,6 @@ public class Pais extends Conector{
                 String[] vv = new String[2];
                 vv[0] = v[1];
                 vv[1] = v[2];
-                // Utils.print( v[0] + " -> " + vv[0] + ":" + Integer.parseInt(vv[1]));
 
                 this.vecinos.put(v[0], vv);
                 this.con.agregar(v[1], Integer.parseInt(v[2]));
@@ -83,8 +81,6 @@ public class Pais extends Conector{
         this.alta_vulnerabilidad = p.getAltaVulnerabilidad();
         this.aislamiento = p.getAislamiento();
 
-        // Utils.print("----------------------------------------------------------------------------------------------------------------");
-
         // abre un puerto de servidor en un puerto cualquiera
         this.con = new Conexiones(this);
         this.vecinos = p.getVecinos();
@@ -93,7 +89,6 @@ public class Pais extends Conector{
             String pais = entry.getKey(); // este es el nombre
             String[] vecino = entry.getValue();
             this.con.agregar(vecino[0], Integer.parseInt(vecino[1]));
-            // Utils.print( pais + " -> " + vecino[0] + ":" + Integer.parseInt(vecino[1]));
         }
 
         this.continuar = true;
@@ -134,7 +129,7 @@ public class Pais extends Conector{
                 );
                 LOGGER.log(Level.INFO, "pasa un dia : " + prt() );
                 Utils.print( "pasa un dia : " + prt() );
-                Thread.sleep(this.poblacion);
+                Thread.sleep(this.poblacion / 100 );
             }
             catch(InterruptedException ie)
             {
@@ -206,13 +201,9 @@ public class Pais extends Conector{
     // da un paso de tiempo
     public synchronized void infectar(double posibilidadInfecion, String nombre){
         // intentar simular una tasa de infeccion de 1.6
-        // int nuevos_enfermos = this.enfermos + (int) (this.enfermos * 1.6);
-
-        // Utils.print( "posibilidad " +  posibilidadInfecion);
-
         // solo agregar dos, por el momento
+        // Utils.print( posibilidadInfecion );
         double nuevos_enfermos = random(0, 1) < posibilidadInfecion ? 2 : 0;
-        // Utils.print("nuevos infectados : " + this.enfermos + " " + nuevos_enfermos);
 
         nuevos_enfermos += nuevos_enfermos * this.alta_vulnerabilidad;
         nuevos_enfermos -= nuevos_enfermos * this.aislamiento;
@@ -221,12 +212,15 @@ public class Pais extends Conector{
 
         int nuevos = this.enfermos + ((int)nuevos_enfermos);
 
-        if (nuevos != this.enfermos && nuevos < this.poblacion )
-        {
-            Utils.print("alguien se infecta en " + this.nombre + " por " + nombre);
-        }
+        boolean imp = nuevos != this.enfermos && nuevos < this.poblacion;
 
         this.enfermos = nuevos < this.poblacion ? nuevos : this.poblacion ;
+
+        // para que se pueda ver el cambio al imprimir el pais
+        if (imp)
+        {
+            Utils.print("alguien se infecta en " + this.nombre + " por " + nombre + " --> " + prt() );
+        }
     }
 
     public int getPoblacion()
@@ -234,6 +228,7 @@ public class Pais extends Conector{
         return this.poblacion;
     }
 
+    @Override
     public String getNombre()
     {
         return this.nombre;
@@ -311,11 +306,9 @@ public class Pais extends Conector{
             double tipo = Mensaje.noAgregado;
             Object contenido = null;
 
-            // TODO hacer que esto sea con un objeto mas liviano que todo el estado del pais
             if ( respuesta.getTipo() == Mensaje.estado && respuesta.getContenido().getClass() == EstadoPais.class)
             {
                 EstadoPais pe = (EstadoPais) respuesta.getContenido();
-                // Utils.print("en " + pe.getNombre() + " hay " + pe.getEnfermos() + "/" + pe.getPoblacion() );
 
                 this.vecinos.put(
                     pe.getNombre(),

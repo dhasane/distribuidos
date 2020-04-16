@@ -74,13 +74,12 @@ public class Connection extends Thread{
                 }
             }
         } catch(SocketException e){
-            Utils.print("conexion cerrada");
         } catch(ClassNotFoundException e){
-            e.printStackTrace();
+            // e.printStackTrace();
         } catch(EOFException e){
-            System.out.println("EOF:"+e.getMessage());
+            // System.out.println("EOF:"+e.getMessage());
         } catch(IOException e){
-            System.out.println("readline:"+e.getMessage());
+            // System.out.println("readline:"+e.getMessage());
         }
         finally{
             try {
@@ -89,10 +88,11 @@ public class Connection extends Thread{
                 e.printStackTrace();
             }
         }
+        Utils.print("conexion cerrada");
         bro.disconnect(this);
     }
 
-    public void detener()
+    public synchronized void detener()
     {
         this.continuar = false;
         try{

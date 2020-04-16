@@ -1,5 +1,4 @@
 {
-    "umbral": 1000,
     "conexiones": [
         {
             "nombre": "pc1",
@@ -47,7 +46,7 @@
     "info" : [
         {
             "nombre": "Colombia",
-            "poblacion" : "2000",
+            "poblacion" : "200000",
             "enfermos": "3",
             "alta_vulnerabilidad": "0.3",
             "aislamiento": "0.2",
@@ -55,66 +54,51 @@
                 "Chile",
                 "Peru",
                 "Argentina"
-            ],
-            "vecinos_aereos": [
-                "Peru"
             ]
         },
         {
             "nombre": "Peru",
-            "poblacion" : "5000",
+            "poblacion" : "500000",
             "enfermos": "0",
             "alta_vulnerabilidad": "0.2",
             "aislamiento": "0.1",
             "vecinos": [
                 "Colombia",
-                "Chile"
-            ],
-            "vecinos_aereos": [
-                "Colombia",
+                "Chile",
                 "Venezuela",
                 "Argentina"
             ]
         },
         {
             "nombre": "Chile",
-            "poblacion" : "1000",
+            "poblacion" : "100000",
             "enfermos": "0",
             "alta_vulnerabilidad": "0.6",
             "aislamiento": "0.4",
             "vecinos": [
                 "Colombia",
                 "Peru",
-                "Argentina"
-            ],
-            "vecinos_aereos": [
-                "Colombia",
                 "Venezuela"
             ]
         },
         {
             "nombre": "Venezuela",
-            "poblacion" : "4000",
-            "enfermos": "1",
+            "poblacion" : "400000",
+            "enfermos": "0",
             "alta_vulnerabilidad": "0.7",
             "aislamiento": "0.1",
             "vecinos": [
-                "Chile"
-            ],
-            "vecinos_aereos": [
+                "Chile",
                 "Colombia"
             ]
         },
         {
             "nombre": "Argentina",
-            "poblacion" : "3000",
+            "poblacion" : "300000",
             "enfermos": "0",
             "alta_vulnerabilidad": "0.4",
             "aislamiento": "0.4",
             "vecinos": [
-                "Venezuela"
-            ],
-            "vecinos_aereos": [
                 "Peru",
                 "Chile",
                 "Colombia",

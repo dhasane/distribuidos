@@ -24,7 +24,7 @@ public class Computador {
     private List<Pais> paises;
     private Logger LOGGER;
 
-    public Computador(int port, int umbral)
+    public Computador(int port)
     {
         // por el momento, para facilitar las pruebas
         // Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -34,12 +34,12 @@ public class Computador {
 		// });
         this.paises = new ArrayList<Pais>();
 
-        this.broker = new Broker(this, port, umbral);
+        this.broker = new Broker(this, port);
         LOGGER = Utils.getLogger(this, this.broker.getNombre());
     }
 
     // imprime todos los paises contenidos en este computador
-    public void imprimir()
+    public String imprimir()
     {
         String prt = broker.getNombre() + " -> ";
 
@@ -49,8 +49,9 @@ public class Computador {
             prt += p.toString() + ", ";
             pesoTotal += p.getPoblacion();
         }
-        LOGGER.log(Level.INFO, "=====>" + prt + " ( total : " + pesoTotal + " )" );
-        Utils.print( "=====>" + prt + " ( total : " + pesoTotal + " )" );
+        String ret = "=====>" + prt + " ( total : " + pesoTotal + " )";
+        LOGGER.log( Level.INFO, ret );
+        return ret;
     }
 
     // detiene el funcionamiento
@@ -73,7 +74,6 @@ public class Computador {
             double alta_vulnerabilidad,
             double aislamiento,
             List<String[]> vecinos,
-            List<String[]> vecinosAereos,
             int port
             )
     {
@@ -86,7 +86,6 @@ public class Computador {
                 alta_vulnerabilidad,
                 aislamiento,
                 vecinos,
-                vecinosAereos,
                 port
             )
         );
@@ -132,7 +131,7 @@ public class Computador {
             LOGGER.log( Level.INFO, "agregando pais : " + p.getNombre() );
             Utils.print( "agregando pais : " + p.getNombre() );
             this.paises.add(p);
-            imprimir();
+            Utils.print( imprimir() );
         }
     }
 
@@ -144,7 +143,7 @@ public class Computador {
             // copiar antes de detener, ya que detener pierde las conexiones
             PaisEnvio pe = p.detener();
             this.paises.remove(p);
-            imprimir();
+            Utils.print( imprimir() );
             return pe;
         }
         return null;

@@ -33,22 +33,28 @@ public class Conexiones extends Thread{
     private List<Connection> clientes;
     private boolean continuar;
 
-    // respuestas
-    private Map<String , Respuesta> respuestas;
+    // reintentos/reenvios
     private final int cantidad_intentos = 5;
     // tiempo de espera en segundos para las respuestas
     private final int tiempo_espera = 1; // esto son segundos
+
+    // respuestas
+    private Map<String , Boolean> respuestas;
+    private List<Respuesta> limpiar; // respuestas a limpiar
+
+    private Thread limpieza; // hilo que se encarga de la limpieza de respuestas
 
     public Conexiones(Conector cnt, int serverPort)
     {
         try
         {
-            this.respuestas = new HashMap<String, Respuesta>();
+            this.limpieza = null;
+
             this.listenSocket = new ServerSocket(serverPort); //Inicializar socket con el puerto
             this.clientes = new ArrayList<Connection>();
             this.cnt = cnt;
             this.continuar = true;
-            LOGGER = Utils.getLogger(this, this.getNombre());
+            LOGGER = Utils.getLogger(this, this.getNombre() + ":" + cnt.getNombre());
             this.start();
         }
         catch(IOException ioe )
@@ -61,7 +67,6 @@ public class Conexiones extends Thread{
     {
         try
         {
-            this.respuestas = new HashMap<String, Respuesta>();
             this.listenSocket = new ServerSocket(0); //Inicializar socket un puerto cualquiera
             this.clientes = new ArrayList<Connection>();
             this.cnt = cnt;
@@ -80,25 +85,16 @@ public class Conexiones extends Thread{
         return this.clientes;
     }
 
+    public int getPort()
+    {
+        return this.listenSocket.getLocalPort();
+    }
+
     public String getNombre()
     {
         return this.listenSocket.getLocalPort() + "";
     }
 
-    public synchronized void respuestasEliminar(Mensaje msg)
-    {
-        this.respuestas.remove(msg);
-    }
-
-    public synchronized void respuestasAgregar(String key)
-    {
-        this.respuestas.put(
-            key,
-            new Respuesta()
-        );
-    }
-
-    // el broker se quedara escuchando por conexiones entrantes
     // hilo que espera a que lleguen nuevos clientes
     public void run()
     {
@@ -123,19 +119,24 @@ public class Conexiones extends Thread{
             {}
 
             LOGGER.log(Level.INFO, "cerrando puerto : " + this.getNombre() );
-            this.clientes.forEach(c->c.detener());
         }
     }
 
-    public void detener()
+    public synchronized void detener()
     {
         this.continuar = false;
+        LOGGER.log(Level.INFO, "deteniendo conexiones " );
+        this.limpieza.interrupt();
         try{
             this.listenSocket.close();
         }
         catch(IOException e)
         {
             e.printStackTrace();
+        }
+        synchronized(this.clientes)
+        {
+            this.clientes.forEach(c->c.detener());
         }
     }
 
@@ -145,6 +146,7 @@ public class Conexiones extends Thread{
         {
             return false;
         }
+        LOGGER.log(Level.INFO, "cerrando conexion : " + c.getAddr() + ":" + c.getPort() );
         this.clientes.remove(c);
         return true;
     }
@@ -273,58 +275,14 @@ public class Conexiones extends Thread{
         }
     }
 
-    // espera a que se responda un mensaje con id, en caso de no ser respondido en
-    // tiempo_de_espera, termina la ejecucion
-    // esto porque no se puede quedar esperando para siempre :v
-    // private Mensaje esperarRetornoRespuesta(String id, int tiempo_de_espera, Connection c) throws TimeoutException
-    // {
-    //     Mensaje valor = null;
-    //     // esto sirve para cortar el funcionamiento de algo despues de que supere un tiempo limite
-    //     ExecutorService es = Executors.newSingleThreadExecutor();
-    //     try {
-    //         es.submit(() -> {
-    //
-    //             Respuesta r = this.respuestas.get(id);
-    //             try{
-    //                 while(!r.estado())
-    //                 {
-    //                     synchronized(r)
-    //                     {
-    //                         r.wait();
-    //                     }
-    //                 }
-    //             } catch (InterruptedException e) {
-    //                 Utils.print("se ha interrumpido la espera de la respuesta");
-    //             }
-    //
-    //
-    //         }).get(tiempo_de_espera , TimeUnit.SECONDS);
-    //
-    //     } catch (TimeoutException e) {
-    //         // Utils.print("tiempo excedido en la espera de respuesta");
-    //         new TimeoutException();
-    //     } catch (ExecutionException e) {
-    //         Utils.print("se ha interrumpido la ejecucion");
-    //     } catch (InterruptedException e) {
-    //         Utils.print("se ha interrumpido la espera de la respuesta");
-    //     } finally {
-    //         es.shutdown();
-    //     }
-    //
-    //     return valor;
-    // }
-
     private synchronized void enviar(Connection c, Mensaje data)
     {
-        if (data.isRequest())
-            respuestasAgregar(data.getId());
-        // se envia el mensaje
         c.send(data);
-        // Utils.print("enviando : " + data.toString() );
 
         // en caso de ser un request, se tiene que esperar a que llegue la respuesta
         if (data.isRequest())
         {
+            // reintentar mientras no llegue respuesta, sin tener que bloquear el resto del funcionamiento
             new Thread(()->{
                 int intentos = cantidad_intentos;
                 boolean seguir = true;
@@ -332,7 +290,6 @@ public class Conexiones extends Thread{
                 do{
                     intentos --;
                     c.send(data);
-                    // Utils.print("re-enviando : " + data.toString() );
                     try{
                         // esperarRetornoRespuesta(data.getId(), tiempo_espera, c);
                         Thread.sleep(tiempo_espera*1000);
@@ -340,33 +297,107 @@ public class Conexiones extends Thread{
                     } catch(InterruptedException ie){
 
                     }
-                }while( !this.respuestas.get(data.getId()).estado() && intentos > 0);
+                }while( !conseguirRespuesta(data.getId()) && intentos > 0);
             }).start();
         }
     }
 
+    private void crearRespuestas()
+    {
+        if(this.respuestas == null)
+        {
+            this.respuestas = new HashMap<String, Boolean>();
+            this.limpiar = new ArrayList<Respuesta>();
+        }
+    }
+
+    private boolean conseguirRespuesta(String id)
+    {
+        crearRespuestas();
+        return this.respuestas.getOrDefault(id, false);
+    }
+
+    private synchronized void eliminarRespuesta()
+    {
+        if ( respuestas.size() > 0 )
+        {
+            this.respuestas.remove( this.limpiar.get(0) );
+            this.limpiar.remove(0);
+        }
+    }
+
+    private void limpiarRespuestas()
+    {
+        if ( this.limpieza == null || !this.limpieza.isAlive() )
+        {
+            this.limpieza = new Thread( () -> {
+
+                // se deben ir limpiando cada cierto tiempo, para permitir que sirvan como filtro para muchos paquetes que lleguen iguales, pero que no se quede llenando espacio eternamente
+                while(!this.limpiar.isEmpty())
+                {
+                    try{
+                        Thread.sleep( this.limpiar.get(0).getTiempo() );
+                        eliminarRespuesta();
+                    }
+                    catch (InterruptedException e)
+                    {
+                        break;
+                    }
+                }
+
+            });
+        }
+        // de lo contrario ya esta corriendo
+    }
+
+    private synchronized void contestar(String id)
+    {
+        crearRespuestas();
+
+        this.respuestas.put(id, true);
+        // agregar un hilo que espere mientras va limpiando el mapa
+        int tiempo_espera_eliminar = 5000;
+
+        if ( !this.limpiar.isEmpty() )
+        {
+            // si un valor entra, se pondra 5000, si un segundo valor entra
+            for( Respuesta r : this.limpiar )
+            {
+                tiempo_espera_eliminar -= r.getTiempo();
+                if (tiempo_espera_eliminar < 0 )
+                {
+                    tiempo_espera_eliminar = 0;
+                    break;
+                }
+            }
+        }
+
+        this.limpiar.add( new Respuesta(id,tiempo_espera_eliminar) );
+        limpiarRespuestas(); // intenta lanzar la limpieza
+    }
+
     public void respond(Connection c, Mensaje data)
     {
+        // si respuestas es igual a null, no importan las respuestas que lleguen
+        if( conseguirRespuesta(data.getId()) )
+            return;
+
+        limpiarRespuestas();
+
         // pero esto me permite buscar reply
         // ignorar todos los demas mensajes de este mismo id
-        // Utils.print("entra " + data.toString());
         if ( data.isRespond() )
         {
-            // Utils.print(" llega respuesta : " + data.toString() );
-            Respuesta r = this.respuestas.getOrDefault(data.getId(), null);
             // en caso de ya haber recibido la respuesta, esta ya habra sido manejada
             // y sera null
-            // Utils.print( "respuesta : " + r.toString());
-            if (r != null && !r.estado())
-            {
-                r.agregarRespuesta(data);;
                 // Utils.print("mensaje a conector");
-                cnt.respond(c, data);
-            }
+            contestar(data.getId());
+            cnt.respond(c, data);
             return ;
         }
         else
         {
+            contestar(data.getId());
             cnt.respond(c, data);
         }
         return;

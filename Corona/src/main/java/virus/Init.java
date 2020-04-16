@@ -60,8 +60,8 @@ public class Init{
             );
         }
 
-        Utils.print(this.conexiones);
-        Utils.print(this.paises);
+        // Utils.print(this.conexiones);
+        // Utils.print(this.paises);
     }
 
     private Init( String config, String nombre )
@@ -72,12 +72,11 @@ public class Init{
         JSONObject obj = new JSONObject( readFile(config) );
         getGeneral(obj);
 
-        Utils.print(Integer.parseInt(this.conexiones.get(nombre).get("port")));
+        // Utils.print(Integer.parseInt(this.conexiones.get(nombre).get("port")));
 
         String thisPort = this.conexiones.get(nombre).get("port");
         this.comp = new Computador(
-            Integer.parseInt(this.conexiones.get(nombre).get("port")),
-            obj.getInt("umbral")
+            Integer.parseInt(this.conexiones.get(nombre).get("port"))
         );
 
         JSONArray ja = obj.getJSONArray("info");
@@ -90,7 +89,7 @@ public class Init{
             // verificar si el pais se encuentra en el computador actual
             if ( nombre.equals( this.paises.get(nombreP).get("en") ) )
             {
-                Utils.print("agregando " + nombreP );
+                // Utils.print("agregando " + nombreP );
                 comp.agregarPais(
                     nombreP,
                     Integer.parseInt( jo.getString( "poblacion" ) ),
@@ -98,7 +97,6 @@ public class Init{
                     Double.parseDouble( jo.getString( "alta_vulnerabilidad" ) ),
                     Double.parseDouble( jo.getString( "aislamiento" ) ),
                     aVecinos(jo.getJSONArray( "vecinos" )),
-                    aVecinos(jo.getJSONArray( "vecinos_aereos" )),
                     Integer.parseInt( this.paises.get(nombreP).get("port") )
                 );
             }
@@ -129,7 +127,7 @@ public class Init{
             String nomP = (String) ja.get(a);
             String[] val = new String[3];
 
-            Utils.print( nomP + " => " + this.paises.get(nomP).get("dir") + ":" + this.paises.get(nomP).get("port"));
+            // Utils.print( nomP + " => " + this.paises.get(nomP).get("dir") + ":" + this.paises.get(nomP).get("port"));
 
             val[0] = nomP;
             val[1] = this.paises.get(nomP).get("dir");

@@ -30,21 +30,24 @@ public class Broker extends Conector{
     private Logger LOGGER;
 
     private Computador cnt;
-    private int umbral; // umbral aceptable de diferencia entre pesos de distintos
     private Conexiones con;
     private boolean continuar;
     private Map<Connection, Integer> pesos;
 
-    // private int tiempoDescanso = 30000; // cada 30 segundos
-    private int tiempoDescanso = 5000; // cada 30 segundos
+    private String Nombre;
 
-    public Broker(Computador cnt, int serverPort, int umbral)
+    private int tiempoDescanso = 30000; // cada 30 segundos
+
+    public Broker(Computador cnt, int serverPort)
     {
+        this.Nombre = "Broker:" + String.valueOf(serverPort);
+        this.cnt = cnt;
+
         this.pesos = new HashMap<Connection, Integer>();
         this.con = new Conexiones(this, serverPort);
-        this.cnt = cnt;
-        this.umbral = umbral;
-        LOGGER = Utils.getLogger(this, this.getNombre());
+
+        LOGGER = Utils.getLogger(this, this.Nombre );
+
         this.continuar = true;
         this.start();
     }
@@ -53,6 +56,12 @@ public class Broker extends Conector{
     {
         while(this.continuar)
         {
+            send(
+                new Mensaje(
+                    Mensaje.weight,
+                    "oiga su peso"
+                )
+            );
             try{
                 Thread.sleep(this.tiempoDescanso);
             }
@@ -61,15 +70,9 @@ public class Broker extends Conector{
 
             }
 
-            Utils.print("balanceando");
-            Utils.print(this.con.prt());
+            Utils.print("balanceando " + this.con.prt());
             balancear();
-            send(
-                new Mensaje(
-                    Mensaje.weight,
-                    "oiga su peso"
-                )
-            );
+            Utils.print( this.cnt.imprimir() );
 
         }
     }
@@ -139,9 +142,10 @@ public class Broker extends Conector{
         // por el momento no se usan accept
     }
 
+    @Override
     public String getNombre()
     {
-        return this.con.getNombre();
+        return this.Nombre;
     }
 
     @Override
@@ -215,7 +219,7 @@ public class Broker extends Conector{
 
         int diferencia = (miPeso - peso)/2;
 
-        // tu que tienes un peso suficientemente distinto al mio(dentro de un umbral), te paso una de mis clases que te acerque lo mejor posible al promedio entre tu peso y mi peso
+        // tu que tienes un peso suficientemente distinto al mio, te paso una de mis clases que te acerque lo mejor posible al promedio entre tu peso y mi peso
 
         List<Integer> pesos = cnt.pesoObjetos();
 
