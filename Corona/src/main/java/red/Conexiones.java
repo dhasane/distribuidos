@@ -2,7 +2,6 @@ package red;
 
 import java.io.IOException;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 import java.util.logging.Level;
 import java.net.ConnectException;
 import java.net.InetAddress;
@@ -13,12 +12,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import virus.Utils;
 
@@ -43,7 +36,7 @@ public class Conexiones extends Thread{
     private List<Respuesta> limpiar; // respuestas a limpiar
     private Thread limpieza; // hilo que se encarga de la limpieza de respuestas
 
-    public Conexiones(Conector cnt, int serverPort)
+    public Conexiones(final Conector cnt, final int serverPort)
     {
         try
         {
@@ -55,12 +48,12 @@ public class Conexiones extends Thread{
             this.continuar = true;
             LOGGER = Utils.getLogger(this, this.getNombre() + ":" + cnt.getNombre());
             this.start();
-        } catch(IOException ioe ) {
+        } catch(final IOException ioe ) {
             ioe.printStackTrace();
         }
     }
 
-    public Conexiones(Conector cnt)
+    public Conexiones(final Conector cnt)
     {
         try
         {
@@ -70,7 +63,7 @@ public class Conexiones extends Thread{
             this.continuar = true;
             LOGGER = Utils.getLogger(this, this.getNombre());
             this.start();
-        } catch(IOException ioe ) {
+        } catch(final IOException ioe ) {
             ioe.printStackTrace();
         }
     }
@@ -102,14 +95,14 @@ public class Conexiones extends Thread{
                         new Connection( this, listenSocket.accept() )
                 );
             }
-        } catch(IOException e) {
+        } catch(final IOException e) {
             System.out.println("Listen socket:"+e.getMessage());
         }
         finally
         {
             try{
                 this.listenSocket.close();
-            } catch(IOException e) {}
+            } catch(final IOException e) {}
 
             LOGGER.log(Level.INFO, "cerrando puerto : " + this.getNombre() );
         }
@@ -122,7 +115,7 @@ public class Conexiones extends Thread{
         this.limpieza.interrupt();
         try{
             this.listenSocket.close();
-        } catch(IOException e) {
+        } catch(final IOException e) {
             e.printStackTrace();
         }
         synchronized(this.clientes)
@@ -131,7 +124,7 @@ public class Conexiones extends Thread{
         }
     }
 
-    public synchronized boolean eliminar(Connection c)
+    public synchronized boolean eliminar(final Connection c)
     {
         if( !this.clientes.contains(c) )
         {
@@ -144,37 +137,37 @@ public class Conexiones extends Thread{
 
     public List<String[]> getConexiones()
     {
-        List<String[]> conexiones = new ArrayList<String[]>();
-        for( Connection c: this.clientes )
+        final List<String[]> conexiones = new ArrayList<String[]>();
+        for( final Connection c: this.clientes )
         {
-            String[] val = { c.getAddr(), String.valueOf(c.getPort()) };
+            final String[] val = { c.getAddr(), String.valueOf(c.getPort()) };
             conexiones.add(val);
         }
         return conexiones;
     }
 
-    public synchronized boolean agregar(String strcon, int port)
+    public synchronized boolean agregar(final String strcon, final int port)
     {
         boolean ret = false;
         try{
-            InetAddress host = InetAddress.getByName(strcon);
+            final InetAddress host = InetAddress.getByName(strcon);
             ret = agregar(
                 new Connection(
                     this,
                     new Socket(host, port)
                 )
             );
-        } catch(ConnectException ce) {
+        } catch(final ConnectException ce) {
             // Utils.print("conexion : " + strcon + ":" + port + " no disponible" );
-        } catch(UnknownHostException uhe ) {
+        } catch(final UnknownHostException uhe ) {
             // Utils.print("direccion no encontrada");
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
         }
         return ret;
     }
 
-    public synchronized boolean agregar(Connection c)
+    public synchronized boolean agregar(final Connection c)
     {
         // no pueden haber repetidos, no tendria sentido
         if( !this.clientes.contains(c) )
@@ -190,7 +183,7 @@ public class Conexiones extends Thread{
     {
         String prt = this.clientes.size() + " > [";
         boolean primero = true;
-        for( Connection c : this.clientes )
+        for( final Connection c : this.clientes )
         {
             if (primero)
             {
@@ -205,14 +198,14 @@ public class Conexiones extends Thread{
 
     public String[] getAddr()
     {
-        String[] addr = new String[2];
+        final String[] addr = new String[2];
         addr[0] = this.listenSocket.getInetAddress().getHostAddress().toString();
         addr[1] = String.valueOf( this.listenSocket.getLocalPort() );
 
         return addr;
     }
 
-    public void sendRandomAdd(Object obj)
+    public void sendRandomAdd(final Object obj)
     {
         // si no hay nadie a quien enviarle los objetos, nada que hacer
         if(this.clientes.isEmpty())
@@ -230,12 +223,12 @@ public class Conexiones extends Thread{
     }
 
     // evento de desconexion de un socket
-    public void disconnect(Connection c)
+    public void disconnect(final Connection c)
     {
         eliminar(c);
     }
 
-    private double random( int inferior, int superior )
+    private double random( final int inferior, final int superior )
     {
         double val = Math.random();
         if ( val < 0 ) val *= -1;
@@ -244,23 +237,23 @@ public class Conexiones extends Thread{
     }
 
     // envia a una conexion especifica
-    public synchronized void send(Connection c, Mensaje data)
+    public synchronized void send(final Connection c, final Mensaje data)
     {
         enviar(c, data);
     }
 
     // envia a todas las conexiones
-    public synchronized void send(Mensaje data)
+    public synchronized void send(final Mensaje data)
     {
         // tambien se podria retornar una lista de respuestas
         // aunque por el momento no es necesario
-        for (Connection c : this.clientes)
+        for (final Connection c : this.clientes)
         {
             enviar(c,data);
         }
     }
 
-    private synchronized void enviar(Connection c, Mensaje data)
+    private synchronized void enviar(final Connection c, final Mensaje data)
     {
         c.send(data);
 
@@ -270,7 +263,7 @@ public class Conexiones extends Thread{
             // reintentar mientras no llegue respuesta, sin tener que bloquear el resto del funcionamiento
             new Thread(()->{
                 int intentos = cantidad_intentos;
-                boolean seguir = true;
+                final boolean seguir = true;
 
                 do{
                     intentos --;
@@ -279,7 +272,7 @@ public class Conexiones extends Thread{
                         // esperarRetornoRespuesta(data.getId(), tiempo_espera, c);
                         Thread.sleep(tiempo_espera*1000);
                         // llegar aca significa que todo corrio adecuadamente
-                    } catch(InterruptedException ie){
+                    } catch(final InterruptedException ie){
 
                     }
                 }while( !conseguirRespuesta(data.getId()) && intentos > 0);
@@ -296,7 +289,7 @@ public class Conexiones extends Thread{
         }
     }
 
-    private boolean conseguirRespuesta(String id)
+    private boolean conseguirRespuesta(final String id)
     {
         crearRespuestas();
         return this.respuestas.getOrDefault(id, false);
@@ -323,7 +316,7 @@ public class Conexiones extends Thread{
                     try{
                         Thread.sleep( this.limpiar.get(0).getTiempo() );
                         eliminarRespuesta();
-                    } catch (InterruptedException e) {
+                    } catch (final InterruptedException e) {
                         break;
                     }
                 }
@@ -333,7 +326,7 @@ public class Conexiones extends Thread{
         // de lo contrario ya esta corriendo
     }
 
-    private synchronized void contestar(String id)
+    private synchronized void contestar(final String id)
     {
         crearRespuestas();
 
@@ -344,7 +337,7 @@ public class Conexiones extends Thread{
         if ( !this.limpiar.isEmpty() )
         {
             // si un valor entra, se pondra 5000, si un segundo valor entra
-            for( Respuesta r : this.limpiar )
+            for( final Respuesta r : this.limpiar )
             {
                 tiempo_espera_eliminar -= r.getTiempo();
                 if (tiempo_espera_eliminar < 0 )
@@ -359,7 +352,7 @@ public class Conexiones extends Thread{
         limpiarRespuestas(); // intenta lanzar la limpieza
     }
 
-    public void respond(Connection c, Mensaje data)
+    public void respond(final Connection c, final Mensaje data)
     {
         // si respuestas es igual a null, no importan las respuestas que lleguen
         if( conseguirRespuesta(data.getId()) )

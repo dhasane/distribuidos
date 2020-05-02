@@ -1,5 +1,4 @@
 package red;
-import java.util.List;
 
 public abstract class Conector extends Thread{
 

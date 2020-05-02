@@ -2,10 +2,10 @@ package red;
 
 public class Respuesta{
 
-    private String id;
-    private int tiempo_a_eliminar;
+    private final String id;
+    private final int tiempo_a_eliminar;
 
-    Respuesta(String id, int t)
+    Respuesta(final String id, final int t)
     {
         this.tiempo_a_eliminar = t;
         this.id = id;

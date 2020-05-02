@@ -5,21 +5,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.json.*;
 
 public class Init{
 
-    private Computador comp;
-    private Map<String, Map<String, String> > conexiones;
-    private Map<String, Map<String, String> > paises;
+    private final Computador comp;
+    private final Map<String, Map<String, String> > conexiones;
+    private final Map<String, Map<String, String> > paises;
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         if (args.length > 1)
         {
-            String config = args[0];
-            String nombre = args[1];
+            final String config = args[0];
+            final String nombre = args[1];
             Utils.print("iniciando con archivo de configuracion : " + config + " con nombre : " + nombre);
             new Init(config, nombre);
         } else {
@@ -27,13 +26,13 @@ public class Init{
         }
     }
 
-    private void getGeneral(JSONObject json)
+    private void getGeneral(final JSONObject json)
     {
-        JSONArray jac = json.getJSONArray("conexiones");
+        final JSONArray jac = json.getJSONArray("conexiones");
         for( int a = 0 ; a < jac.length() ; a++ )
         {
-            JSONObject jo = jac.getJSONObject(a);
-            Map<String, String> value = new HashMap<String, String>();
+            final JSONObject jo = jac.getJSONObject(a);
+            final Map<String, String> value = new HashMap<String, String>();
             value.put( "dir", jo.getString("dir"));
             value.put( "port", jo.getString("port"));
             this.conexiones.put(
@@ -42,11 +41,11 @@ public class Init{
             );
         }
 
-        JSONArray jap = json.getJSONArray("paises");
+        final JSONArray jap = json.getJSONArray("paises");
         for( int a = 0 ; a < jap.length() ; a++ )
         {
-            JSONObject jo = jap.getJSONObject(a);
-            Map<String, String> value = new HashMap<String, String>();
+            final JSONObject jo = jap.getJSONObject(a);
+            final Map<String, String> value = new HashMap<String, String>();
 
             value.put( "en", jo.getString("en") );
             value.put( "dir", this.conexiones.get( jo.getString("en") ).get("dir") ) ;
@@ -58,15 +57,15 @@ public class Init{
         }
     }
 
-    private Init( String config, String nombre )
+    private Init( final String config, final String nombre )
     {
         this.conexiones = new HashMap<String, Map<String, String> >();
         this.paises = new HashMap<String, Map<String, String> >();
 
-        JSONObject obj = new JSONObject( readFile(config) );
+        final JSONObject obj = new JSONObject( readFile(config) );
         getGeneral(obj);
 
-        String thisPort = this.conexiones.get(nombre).get("port");
+        final String thisPort = this.conexiones.get(nombre).get("port");
         this.comp = new Computador(
             Integer.parseInt(this.conexiones.get(nombre).get("port"))
         );
@@ -75,8 +74,8 @@ public class Init{
 
         for( int a = 0 ; a < ja.length() ; a++ )
         {
-            JSONObject jo = ja.getJSONObject(a);
-            String nombreP = jo.getString("nombre");
+            final JSONObject jo = ja.getJSONObject(a);
+            final String nombreP = jo.getString("nombre");
             // verificar si el pais se encuentra en el computador actual
             if ( nombre.equals( this.paises.get(nombreP).get("en") ) )
             {
@@ -96,7 +95,7 @@ public class Init{
 
         for( int a = 0 ; a < ja.length() ; a++ )
         {
-            JSONObject jo = ja.getJSONObject(a);
+            final JSONObject jo = ja.getJSONObject(a);
             if( jo.getString("port") != thisPort)
             {
                 this.comp.agregarConexion(
@@ -108,14 +107,14 @@ public class Init{
         comp.imprimir();
     }
 
-    public List<String[]> aVecinos(JSONArray ja)
+    public List<String[]> aVecinos(final JSONArray ja)
     {
-        List<String[]> vecinos = new ArrayList<String[]>();
+        final List<String[]> vecinos = new ArrayList<String[]>();
 
         for( int a = 0 ; a < ja.length() ; a++ )
         {
-            String nomP = (String) ja.get(a);
-            String[] val = new String[3];
+            final String nomP = (String) ja.get(a);
+            final String[] val = new String[3];
 
             val[0] = nomP;
             val[1] = this.paises.get(nomP).get("dir");
@@ -128,18 +127,18 @@ public class Init{
 
     // cargar un archivo
     // tomado de : https://www.thepolyglotdeveloper.com/2015/03/parse-json-file-java/
-    public static String readFile(String filename) {
+    public static String readFile(final String filename) {
         String result = "";
         try {
-            BufferedReader br = new BufferedReader(new FileReader(filename));
-            StringBuilder sb = new StringBuilder();
+            final BufferedReader br = new BufferedReader(new FileReader(filename));
+            final StringBuilder sb = new StringBuilder();
             String line = br.readLine();
             while (line != null) {
                 sb.append(line);
                 line = br.readLine();
             }
             result = sb.toString();
-        } catch(Exception e) {
+        } catch(final Exception e) {
             e.printStackTrace();
         }
         return result;

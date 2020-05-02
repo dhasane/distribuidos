@@ -2,9 +2,6 @@ package red;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-
-import virus.Utils;
 
 public class Mensaje implements Serializable{
 
@@ -27,14 +24,14 @@ public class Mensaje implements Serializable{
     public static double noAgregado = 2.2;
     public static double info       = 2.3;
 
-    private double tipo;
-    private Object contenido;
+    private final double tipo;
+    private final Object contenido;
 
-    private String id;
+    private final String id;
 
     static DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
 
-    public Mensaje(double tipo, Object contenido)
+    public Mensaje(final double tipo, final Object contenido)
     {
         // usar la fecha como id
         this.id = LocalDateTime.now().format(formatter);
@@ -43,7 +40,7 @@ public class Mensaje implements Serializable{
         this.contenido = contenido;
     }
 
-    public Mensaje(double tipo, String id, Object contenido)
+    public Mensaje(final double tipo, final String id, final Object contenido)
     {
         this.id = id;
         this.tipo = tipo;
@@ -62,7 +59,7 @@ public class Mensaje implements Serializable{
 
     public int getSubType()
     {
-        int y = (int) (this.tipo * 10) % 10;
+        final int y = (int) (this.tipo * 10) % 10;
         return y;
     }
 
