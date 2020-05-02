@@ -2,6 +2,7 @@
 
 **/*.class
 **/logs/*
+**/javac.*.args
 
 **/*.zip
 
