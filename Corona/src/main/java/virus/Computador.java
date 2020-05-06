@@ -1,30 +1,21 @@
 package virus;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import red.Broker;
-import red.Conector;
-import red.Mensaje;
-import red.Connection;
 import envio.PaisEnvio;
-import virus.Utils;
 
 // representa lo que correra en un computador, falta definir un mejor nombre
 public class Computador {
 
-    private Broker broker;
-    private List<Pais> paises;
-    private Logger LOGGER;
+    private final Broker broker;
+    private final List<Pais> paises;
+    private final Logger LOGGER;
 
-    public Computador(int port)
+    public Computador(final int port)
     {
         // por el momento, para facilitar las pruebas
         // Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -43,12 +34,12 @@ public class Computador {
     {
         String prt = broker.getNombre() + " -> ";
         int pesoTotal = 0;
-        for(Pais p: this.paises)
+        for(final Pais p: this.paises)
         {
             prt += p.toString() + ", ";
             pesoTotal += p.getPoblacion();
         }
-        String ret = "=====>" + prt + " ( total : " + pesoTotal + " )";
+        final String ret = "=====>" + prt + " ( total : " + pesoTotal + " )";
         LOGGER.log( Level.INFO, ret );
         return ret;
     }
@@ -67,13 +58,13 @@ public class Computador {
     }
 
     public void agregarPais(
-            String nombre,
-            int poblacion,
-            int enfermos_iniciales,
-            double alta_vulnerabilidad,
-            double aislamiento,
-            List<String[]> vecinos,
-            int port
+            final String nombre,
+            final int poblacion,
+            final int enfermos_iniciales,
+            final double alta_vulnerabilidad,
+            final double aislamiento,
+            final List<String[]> vecinos,
+            final int port
             )
     {
         LOGGER.log(Level.INFO, "agregando pais " + nombre  );
@@ -91,7 +82,7 @@ public class Computador {
     }
 
     // agrega una nueva conexion
-    public void agregarConexion(String strcon, int port)
+    public void agregarConexion(final String strcon, final int port)
     {
         broker.agregar( strcon, port );
     }
@@ -100,7 +91,7 @@ public class Computador {
     public int peso()
     {
         int peso = 0;
-        for( Pais pais: this.paises )
+        for( final Pais pais: this.paises )
         {
             peso += pais.getPoblacion();
         }
@@ -117,10 +108,10 @@ public class Computador {
     }
 
     // agrega un pais a la lista de paises
-    public synchronized void agregar(Pais p)
+    public synchronized void agregar(final Pais p)
     {
         boolean encontrado = false;
-        for(Pais pa: this.paises)
+        for(final Pais pa: this.paises)
         {
             encontrado |= pa.getNombre() == p.getNombre();
         }
@@ -135,11 +126,11 @@ public class Computador {
     }
 
     // elimina un pais de la lista de paises
-    private synchronized PaisEnvio eliminar(Pais p)
+    private synchronized PaisEnvio eliminar(final Pais p)
     {
         if (this.paises.contains(p))
         {
-            PaisEnvio pe = p.detener();
+            final PaisEnvio pe = p.detener();
             this.paises.remove(p);
             Utils.print( imprimir() );
             return pe;
@@ -148,12 +139,12 @@ public class Computador {
     }
 
     // consigue un objeto y lo borra
-    public synchronized Object getObject(int index)
+    public synchronized Object getObject(final int index)
     {
         PaisEnvio pe = null;
         if (0 <= index && index < this.paises.size())
         {
-            Pais pa = this.paises.get(index);
+            final Pais pa = this.paises.get(index);
             pe = eliminar( pa );
         }
         return pe;

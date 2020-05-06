@@ -28,18 +28,18 @@
             "port" : "5679"
         },
         {
-            "nombre" : "Chile",
+            "nombre" : "Bolivia",
             "en": "pc2",
             "port" : "5680"
         },
         {
             "nombre" : "Venezuela",
-            "en": "pc3",
+            "en": "pc2",
             "port" : "9877"
         },
         {
-            "nombre" : "Argentina",
-            "en": "pc3",
+            "nombre" : "Ecuador",
+            "en": "pc2",
             "port" : "9878"
         }
     ],
@@ -51,9 +51,10 @@
             "alta_vulnerabilidad": "0.3",
             "aislamiento": "0.2",
             "vecinos": [
-                "Chile",
                 "Peru",
-                "Argentina"
+                "Bolivia",
+                "Venezuela",
+                "Ecuador"
             ]
         },
         {
@@ -64,13 +65,13 @@
             "aislamiento": "0.1",
             "vecinos": [
                 "Colombia",
-                "Chile",
+                "Bolivia",
                 "Venezuela",
-                "Argentina"
+                "Ecuador"
             ]
         },
         {
-            "nombre": "Chile",
+            "nombre": "Bolivia",
             "poblacion" : "100000",
             "enfermos": "0",
             "alta_vulnerabilidad": "0.6",
@@ -78,7 +79,8 @@
             "vecinos": [
                 "Colombia",
                 "Peru",
-                "Venezuela"
+                "Venezuela",
+                "Ecuador"
             ]
         },
         {
@@ -88,20 +90,22 @@
             "alta_vulnerabilidad": "0.7",
             "aislamiento": "0.1",
             "vecinos": [
-                "Chile",
-                "Colombia"
+                "Colombia",
+                "Peru",
+                "Bolivia",
+                "Ecuador"
             ]
         },
         {
-            "nombre": "Argentina",
+            "nombre": "Ecuador",
             "poblacion" : "300000",
             "enfermos": "0",
             "alta_vulnerabilidad": "0.4",
             "aislamiento": "0.4",
             "vecinos": [
-                "Peru",
-                "Chile",
                 "Colombia",
+                "Peru",
+                "Bolivia",
                 "Venezuela"
             ]
         }

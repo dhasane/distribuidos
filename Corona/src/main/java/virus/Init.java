@@ -144,4 +144,3 @@ public class Init{
         return result;
     }
 }
-

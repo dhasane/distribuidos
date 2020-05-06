@@ -67,6 +67,4 @@ public abstract class Participante implements Remote, Serializable {
             e.printStackTrace();
         }
     }
-
-
 }
